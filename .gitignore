@@ -93,6 +93,9 @@ local_settings.py
 db.sqlite3
 *.pyc
 
+### VS Code ###
+.vscode/
+
 ### Migrations ###
 private/app/migrations/*.py
 
