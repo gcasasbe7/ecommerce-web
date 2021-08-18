@@ -1,6 +1,8 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
+    <h2 @click="addToCart">Add to cart</h2>
+    <h2 @click="clearCart">Clear cart</h2>
     <p>
       For a guide and recipes on how to configure / customize this project,<br>
       check out the
@@ -36,6 +38,25 @@ export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  methods: {
+    addToCart() {
+      // Todo check we have a valid quantity to add to the basket
+      
+      // Build the item object to be added to the basket
+      const item = {
+        product: {
+          "id": 2,
+          "name": "BullPadel Vertex 2",
+        },
+        quantity: 3
+      }
+
+      this.$store.commit('addToCart', item)
+    },
+    clearCart() {
+      this.$store.commit('clearCart')
+    }
   }
 }
 </script>

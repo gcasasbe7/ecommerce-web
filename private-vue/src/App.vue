@@ -1,7 +1,8 @@
 <template>
   <div id="nav">
     <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+    <router-link to="/about">About</router-link> | 
+    <router-link to="/about">Cart ({{cartSize}})</router-link>
   </div>
   <router-view/>
 </template>
@@ -28,3 +29,33 @@
   }
 }
 </style>
+
+<script>
+export default {
+  data() {
+    return {
+      cart: {
+        items: [],
+      }
+    }
+  },
+  beforeCreate() {
+    this.$store.commit('initializeStore')
+  },
+  mounted() {
+    this.cart = this.$store.state.cart
+  },
+  computed: {
+    cartSize() {
+      let totalSize = 0
+
+      for(let i = 0; i < this.cart.items.length; i++){
+        totalSize += this.cart.items[i].quantity
+      }
+
+      return totalSize
+    }
+  }
+}
+</script>
+
