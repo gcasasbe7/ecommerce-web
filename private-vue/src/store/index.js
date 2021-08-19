@@ -41,6 +41,10 @@ export default createStore({
 
       localStorage.setItem('cart', JSON.stringify(state.cart))    
     },
+
+    setIsApplicationLoading(state, status) {
+      this.state.isApplicationLoading = status
+    }
   },
 
   /* Actions: Syncrhonized functions to modify the state data */

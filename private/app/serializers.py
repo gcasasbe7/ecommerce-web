@@ -3,16 +3,21 @@ from .models import *
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductImages
-        fields = ('image',)
+        model = ProductImage
+        fields = ('absolute_url',)
 
-class ProductTypeSerializer(serializers.ModelSerializer):
+class BrandSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductType
+        model = Brand
+        fields = ('name', 'logo_url')
+
+class CategoryNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
         fields = ('name',)
 
 class ProductSerializer(serializers.ModelSerializer):
-    type = ProductTypeSerializer()
+    brand = BrandSerializer()
     images = ProductImageSerializer(many=True)
 
     class Meta:
@@ -20,10 +25,23 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'type',
+            'brand',
             'description',
             'price',
-            'get_absolute_url',
-            'get_thumbnail',
+            'absolute_url',
+            'image_absolute_url',
             'images'
+        )
+
+class CategorySerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True)
+
+    class Meta:
+        model = Category
+        fields = (
+            'id',
+            'name',
+            'absolute_url',
+            'image_url',
+            'products',
         )

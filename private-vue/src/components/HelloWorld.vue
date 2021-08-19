@@ -3,6 +3,7 @@
     <h1>{{ msg }}</h1>
     <h2 @click="addToCart">Add to cart</h2>
     <h2 @click="clearCart">Clear cart</h2>
+    <h2 v-bind:class="{'is-loading' : $store.state.isApplicationLoading}">IS LOADING?</h2>
     <p>
       For a guide and recipes on how to configure / customize this project,<br>
       check out the
@@ -34,10 +35,15 @@
 </template>
 
 <script>
-export default {
+import axios from 'axios'
+
+export default {  
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  mounted() {
+    document.title = "Hola | iPadel"
   },
   methods: {
     addToCart() {
@@ -53,9 +59,31 @@ export default {
       }
 
       this.$store.commit('addToCart', item)
+
+      this.$store.commit('setIsApplicationLoading', !this.$store.state.isApplicationLoading)
     },
     clearCart() {
       this.$store.commit('clearCart')
+    },
+
+    // Needs to be an async method to trigger in linear order the code lines and display the 
+    // loading screen correctly
+    async exampleLoading() {
+      // Assert we are loading the content
+      this.$store.commit('setIsApplicationLoading', true)
+
+      // Do heavy stuff... Await keyword to block the code runtime and wait for the asyncronous task to finish
+      await axios
+        .get('/api/v1/all-products')
+        .then(response => {
+          console.log(response.data)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+
+      // Assert we are loading the content
+      this.$store.commit('setIsApplicationLoading', true)
     }
   }
 }
@@ -76,5 +104,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.is-loading {
+  color: #ff0000;
 }
 </style>
