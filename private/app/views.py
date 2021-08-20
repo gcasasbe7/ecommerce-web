@@ -43,7 +43,7 @@ class AllCategoriesView(APIView):
 class CategoriesList(APIView):
     def get(self, request, format=None):
         categories = Category.objects.all()
-        serializer = CategoryNameSerializer(categories, many=True)
+        serializer = CategorySerializer(categories, many=True)
             
         if serializer.is_valid:
             return Response(serializer.data)
