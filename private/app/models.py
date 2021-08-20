@@ -23,14 +23,14 @@ class Category(models.Model):
 
     # Returns the absolute url for this product type using the slug attribute
     def absolute_url(self):
-        return f'/shop/{self.slug}/'
+        return f'/shop/{self.slug}'
 
     def image_url(self):
         return f'http://127.0.0.1:8000/media/{self.image}/'
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
+    category = models.ManyToManyField(Category, related_name='products')
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
     slug = models.SlugField()
     description = models.TextField(blank=True, null=True)
@@ -46,7 +46,7 @@ class Product(models.Model):
 
     # Returns the absolute url for this product using the slug attribute
     def absolute_url(self):
-        return f'/shop/{self.category.slug}/{self.slug}/'
+        return f'/{self.slug}/'
 
     def image_absolute_url(self):
         return f'http://127.0.0.1:8000/media/{self.display_image}/'

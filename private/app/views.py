@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import CategoryNameSerializer, CategorySerializer, ProductSerializer
+from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer
 from .models import *
 
 class AllProductsView(APIView):
@@ -52,13 +52,19 @@ class CategoriesList(APIView):
 
 class ShopView(APIView):
     def get(self, request, format=None):
-        # TODO: RETURN ALL THE SHOP DATA
-        # CUSTOM SERIALIZER FOR SHOP?
+        # Fetch all the shop categories
         categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-            
-        if serializer.is_valid:
-            return Response(serializer.data)
+        # todo: any other more scalable way to achieve this?
+        highlighted = Category.objects.get(slug="destacados")
+        
+        # Validate the data
+        categories_serializer = CategoryShopListSerializer(categories, many=True)
+                
+        if categories_serializer.is_valid:
+            return Response({
+                    "categories": categories_serializer.data,
+                    "default": highlighted.slug
+                })
         else: 
             return Response({'message': "Serializer not valid"})
 

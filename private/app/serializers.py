@@ -11,10 +11,10 @@ class BrandSerializer(serializers.ModelSerializer):
         model = Brand
         fields = ('name', 'logo_url')
 
-class CategoryNameSerializer(serializers.ModelSerializer):
+class CategoryShopListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name',)
+        fields = ('id','name','absolute_url')
 
 class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
