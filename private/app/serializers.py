@@ -14,7 +14,7 @@ class BrandSerializer(serializers.ModelSerializer):
 class CategoryShopListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('id','name','absolute_url')
+        fields = ('id','name','absolute_url', 'image_url')
 
 class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
@@ -30,7 +30,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'price',
             'absolute_url',
             'image_absolute_url',
-            'images'
+            'images',
+            'is_available'
         )
 
 class CategorySerializer(serializers.ModelSerializer):

@@ -6,7 +6,7 @@
         <h1>{{product.display_image}}</h1>
         <h2>{{product.description}}</h2>
 
-        <router-link v-bind:to="product_detail_url">View details</router-link>
+        <router-link v-bind:to="product.absolute_url">View details</router-link>
     </div>
 </template>
 
@@ -15,7 +15,6 @@ export default {
     name: 'ProductBox',
     props: {
         product: Object,
-        product_detail_url: String
     }
     
 }

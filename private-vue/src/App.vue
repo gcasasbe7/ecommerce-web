@@ -4,6 +4,18 @@
     <router-link to="/about">About</router-link> | 
     <router-link to="/shop">Shop</router-link> | 
     <router-link to="/about">Cart ({{cartSize}})</router-link>
+    <div>
+      <form method="get" action="/search">
+        <input type="text" class="input" name="query" placeholder="Search anything...">
+        <div class="control">
+          <button>
+            <span class="icon">
+              <i class="fas fa-search"></i>
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
   <router-view/>
 </template>

@@ -6,7 +6,6 @@
             v-for="product in this.category.products" 
             v-bind:key="product.id"
             v-bind:product="product"
-            v-bind:product_detail_url="`${this.category.absolute_url}${product.absolute_url}`"
             />
     </div>
 </template>

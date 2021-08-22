@@ -17,6 +17,8 @@ class Category(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     image = models.ImageField(upload_to='uploads/category_images/', blank=True, null=True)
+    visible = models.BooleanField(default=True)
+
 
     def __str__(self):
         return self.name
@@ -30,13 +32,15 @@ class Category(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    category = models.ManyToManyField(Category, related_name='products')
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
+    main_category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    categories = models.ManyToManyField(Category, related_name='products')
     slug = models.SlugField()
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     added_date = models.DateField(auto_now_add=True)
     display_image = models.ImageField(upload_to='uploads/product_images/', blank=True, null=True)
+    stock = models.IntegerField()
 
     class Meta:
         ordering = ('-added_date',)
@@ -44,9 +48,12 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def is_available(self):
+        return self.stock > 0
+
     # Returns the absolute url for this product using the slug attribute
     def absolute_url(self):
-        return f'/{self.slug}/'
+        return f'/shop/{self.main_category.slug}/{self.slug}/'
 
     def image_absolute_url(self):
         return f'http://127.0.0.1:8000/media/{self.display_image}/'

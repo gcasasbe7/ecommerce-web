@@ -19,6 +19,7 @@
 <script>
 import axios from 'axios'
 import CategoryViewer from '@/components/CategoryViewer'
+import CategoryBox from '@/components/CategoryBox'
 
 export default {
     name: 'CategoryView',
@@ -26,69 +27,24 @@ export default {
         return {
             selected_category: {},
             all_categories: [],
-            default_category_slug: ""
         }
     },
     components: {
         CategoryViewer,
+        CategoryBox,
     },
     mounted() {
         document.title = "Shop | iPadel"
-        this.getData()
+        this.getCategoryFromUrl()
     },
     watch: {
         $route(to, from) {
             if(to.name === 'CategoryDetail'){
                 this.getCategoryFromUrl()
-            } else if(to.name == 'Shop') {
-                this.getCategory(this.default_category_slug)
             }
         }
     },
     methods: {
-        async getData() {
-            // Assert the application is loading
-            this.$store.commit('setIsApplicationLoading', true)
-
-            // Build the request
-            const url = "/api/v1/shop"
-            await axios
-                .get(url)
-                .then(response => {
-                    this.all_categories = response.data.categories
-                    this.default_category_slug = response.data.default
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-            
-            // Is there a specified category in the URL?
-            const categorySlug  = this.$route.params.category_slug
-
-            if(categorySlug === undefined) {
-                this.getCategory(this.default_category_slug)
-            }else {
-                this.getCategoryFromUrl()
-            }
-
-            // const categoryParam = (categorySlug === undefined) ? "" : `/shop/${categorySlug}/`
-
-            // if(categoryParam && categoryParam.length > 0){
-            //     this.all_categories.every((category, index) => {
-            //         if(category.absolute_url === categoryParam){
-            //             this.selected_category = category
-            //             document.title = this.selected_category.name + " | iPadel"
-            //             // Category found, break the loop
-            //             return false
-            //         }
-            //         // Category not found, continue looping
-            //         return true
-            //     })
-            // }
-
-            // Assert we have finished loading the view
-            this.$store.commit('setIsApplicationLoading', false)
-        },
         async getCategoryFromUrl() {
             this.$store.commit('setIsApplicationLoading', true)
 
@@ -97,8 +53,8 @@ export default {
             await axios
                 .get(`/api/v1/shop/${categorySlug}/`)
                 .then(response => {
-                    this.selected_category = response.data
-
+                    this.selected_category = response.data.category_detail
+                    this.all_categories = response.data.all_categories
                     document.title = this.selected_category.name + " | iPadel"
                 })
                 .catch(error => {
@@ -107,23 +63,9 @@ export default {
 
             this.$store.commit('setIsApplicationLoading', false)
         },
-
-        async getCategory(category_slug) {
-            this.$store.commit('setIsApplicationLoading', true)
-
-            await axios
-                .get(`/api/v1/shop/${category_slug}/`)
-                .then(response => {
-                    this.selected_category = response.data
-
-                    document.title = this.selected_category.name + " | iPadel"
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-
-            this.$store.commit('setIsApplicationLoading', false)
-        },
+        isEmpty(jsonObject) {
+            return Object.keys(jsonObject).length === 0
+        }
     }
 }
 </script>
@@ -146,5 +88,9 @@ export default {
   content: "";
   display: table;
   clear: both;
+}
+
+.true {
+    visibility: hidden;
 }
 </style>

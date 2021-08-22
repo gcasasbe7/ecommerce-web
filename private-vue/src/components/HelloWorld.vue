@@ -76,10 +76,8 @@ export default {
       await axios
         .get('/api/v1/all-products')
         .then(response => {
-          console.log(response.data)
         })
         .catch(error => {
-          console.log(error)
         })
 
       // Assert we are loading the content
