@@ -3,7 +3,7 @@
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link> | 
     <router-link to="/shop">Shop</router-link> | 
-    <router-link to="/about">Cart ({{cartSize}})</router-link>
+    <router-link to="/cart">Cart ({{cartSize}})</router-link>
     <div>
       <form method="get" action="/search">
         <input type="text" class="input" name="query" placeholder="Search anything...">
@@ -60,13 +60,9 @@ export default {
   },
   computed: {
     cartSize() {
-      let totalSize = 0
-
-      for(let i = 0; i < this.cart.items.length; i++){
-        totalSize += this.cart.items[i].quantity
-      }
-
-      return totalSize
+        return this.cart.items.reduce((acc, val) => {
+            return acc += val.quantity
+        }, 0)
     }
   }
 }

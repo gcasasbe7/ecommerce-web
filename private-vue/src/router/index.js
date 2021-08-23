@@ -4,6 +4,8 @@ import Shop from '@/views/Shop.vue'
 import Categories from '@/views/Categories.vue'
 import Product from '@/views/Product.vue'
 import Search from '@/views/Search.vue'
+import Cart from '@/views/Cart.vue'
+import Checkout from '@/views/Checkout.vue'
 
 const routes = [
   {
@@ -23,6 +25,16 @@ const routes = [
     path: '/search',
     name: 'Search',
     component: Search
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: Cart
+  },
+  {
+    path: '/cart/checkout',
+    name: 'Checkout',
+    component: Checkout
   },
   {
     path: '/shop',

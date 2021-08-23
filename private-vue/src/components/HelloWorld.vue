@@ -60,7 +60,7 @@ export default {
 
       this.$store.commit('addToCart', item)
 
-      this.$store.commit('setIsApplicationLoading', !this.$store.state.isApplicationLoading)
+      this.$store.commit('setIsApplicationLoading', false)
     },
     clearCart() {
       this.$store.commit('clearCart')

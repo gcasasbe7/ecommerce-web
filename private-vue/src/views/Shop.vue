@@ -12,7 +12,6 @@
                 <CategoryViewer :category="this.selected_category"/>
             </div>
         </div>
-        
     </div>
 </template>
 
@@ -62,9 +61,6 @@ export default {
                 })
 
             this.$store.commit('setIsApplicationLoading', false)
-        },
-        isEmpty(jsonObject) {
-            return Object.keys(jsonObject).length === 0
         }
     }
 }
@@ -88,9 +84,5 @@ export default {
   content: "";
   display: table;
   clear: both;
-}
-
-.true {
-    visibility: hidden;
 }
 </style>

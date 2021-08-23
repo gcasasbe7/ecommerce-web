@@ -9,6 +9,8 @@
                 <h1>{{product.name}} (${{product.price}})</h1>
                 <h1>{{product.display_image}}</h1>
                 <h2>{{product.description}}</h2>
+                <br>
+                <button @click="addToCart">Add to cart</button>
             </div>
         </div>
         
@@ -46,6 +48,18 @@ export default {
                 .catch(error => {
                     console.log(error)
                 })
+
+            this.$store.commit('setIsApplicationLoading', false)
+        },
+        addToCart(){
+            this.$store.commit('setIsApplicationLoading', true)
+
+            const item = {
+                'product': this.product,
+                'quantity': 1
+            }
+            
+            this.$store.commit('addToCart', item)
 
             this.$store.commit('setIsApplicationLoading', false)
         }

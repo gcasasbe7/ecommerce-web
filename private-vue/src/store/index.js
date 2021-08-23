@@ -36,6 +36,15 @@ export default createStore({
       localStorage.setItem('cart', JSON.stringify(state.cart))    
     },
 
+    removeFromCart(state, item) {
+      const index = this.state.cart.items.indexOf(item)
+      if (index > -1) {
+        this.state.cart.items.splice(index, 1);
+      }
+
+      localStorage.setItem('cart', JSON.stringify(state.cart))  
+    },
+
     clearCart(state) {
       state.cart.items = []
 
