@@ -2,6 +2,58 @@ from io import BytesIO
 from PIL import Image
 from django.db import models
 from django.core.files import File
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
+
+class UserManager(BaseUserManager):
+
+    def create_user(self, name, email, surname, password=None):
+        if name is None or surname is None or email is None or password is None:
+            raise TypeError("Invalid values")
+
+        user = self.model(name=name, surname=surname, email=self.normalize_email(email))
+        user.set_password(password)
+        user.save(using=self.db)
+
+        return user
+
+    def create_superuser(self, name, email, surname, password=None):
+        user = self.create_user(name, email, surname, password)
+        user.is_superuser = True
+        user.is_admin = True
+        user.save(using=self.db)
+
+        return user
+
+class User(AbstractBaseUser, PermissionsMixin):
+    name = models.CharField(max_length=255)
+    surname = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    is_verified = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    added_date = models.DateField(auto_now_add=True)
+    is_admin = models.BooleanField(default=False)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name', 'surname']
+
+    objects = UserManager()
+
+    def __str__(self):
+        return f'{self.name} {self.surname}'
+
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    @property
+    def is_staff(self):
+        return self.is_admin
 
 class Brand(models.Model):
     name = models.CharField(max_length=255)
@@ -15,7 +67,7 @@ class Brand(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
     image = models.ImageField(upload_to='uploads/category_images/', blank=True, null=True)
     visible = models.BooleanField(default=True)
 
@@ -35,7 +87,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
     main_category = models.ForeignKey(Category, on_delete=models.CASCADE)
     categories = models.ManyToManyField(Category, related_name='products')
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     added_date = models.DateField(auto_now_add=True)

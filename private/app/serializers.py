@@ -46,3 +46,33 @@ class CategorySerializer(serializers.ModelSerializer):
             'image_url',
             'products',
         )
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=68, min_length=8, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('name', 'surname', 'email', 'password')        
+
+    def validate(self, attrs):
+        email = attrs.get('email', '')
+        name = attrs.get('name', '')
+        surname = attrs.get('surname', '')
+
+        # Valid email?
+        if not email:
+            raise serializers.ValidationError("Please introduce a valid email")
+
+        # Valid name?
+        if not name or not name.isalnum():
+            raise serializers.ValidationError("Please introduce a valid name")
+
+        # Valid surname?
+        if not surname:
+            raise serializers.ValidationError("Please introduce a valid surname")
+
+        return attrs
+
+    def create(self, validated_data):
+        # Override with our own definition of User
+        return User.objects.create_user(**validated_data)

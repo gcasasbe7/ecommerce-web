@@ -2,9 +2,14 @@ from django.http import Http404
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import (status, generics)
 from rest_framework.decorators import api_view
-from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer
+from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer, RegisterSerializer
 from .models import *
+from rest_framework_simplejwt.tokens import RefreshToken
+from .email_manager import EmailManager
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
 
 class AllProductsView(APIView):
     def get(self, request, format=None):
@@ -78,6 +83,40 @@ class ShopCategoryDetail(APIView):
                 })
         else: 
             return Response({'message': "Serializer not valid"})
+
+class RegisterView(generics.GenericAPIView):
+
+    def post(self, request):
+        user = request.data
+        serializer = RegisterSerializer(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user_data = serializer.data
+
+        # Fetch the current User Model Object
+        user = User.objects.get(email=user_data['email'])
+
+        # Retrieve the access token for the user
+        token = RefreshToken.for_user(user).access_token
+
+        current_site = get_current_site(request)
+        relative_link = reverse('verify-email')
+        absolute_url = f'http://{current_site}{relative_link}?token={str(token)}'
+
+        email_body = f'Hello ${user.name}. Thanks for signing up with us, please press the link below to verify your account. \n{absolute_url}'
+        email_subject = f'{user.name}, verify your account for iPadel'
+        email_data = {
+            'to': user.email,
+            'body': email_body,
+            'subject': email_subject
+        }
+        EmailManager.sendEmail(email_data)
+
+        return Response(user_data, status=status.HTTP_201_CREATED)
+
+class VerifyEmail(generics.GenericAPIView):
+    def get(self):
+        pass
 
 
 @api_view(['POST'])
