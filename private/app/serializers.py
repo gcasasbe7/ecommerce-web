@@ -1,5 +1,8 @@
+from django.db.models import fields
 from rest_framework import serializers
 from .models import *
+from django.contrib import auth
+from rest_framework.exceptions import AuthenticationFailed
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,3 +79,36 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Override with our own definition of User
         return User.objects.create_user(**validated_data)
+
+class LoginSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=68, min_length=8, write_only=True)
+    name = serializers.CharField(max_length=68, min_length=8, read_only=True)
+    surname = serializers.CharField(max_length=68, min_length=8, read_only=True)
+    email = serializers.CharField(max_length=68)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'name', 'surname', 'tokens')
+
+    def validate(self, attrs):
+        # Fetch the user login data
+        email = attrs.get('email', '')
+        password = attrs.get('password', '')
+        # Attempt to authenticate
+        user = auth.authenticate(email=email, password=password)
+        # Raise exception for unvalid authentication
+        if not user:
+            raise AuthenticationFailed('Invalid credentials, please try again.')
+        # Assert the account is verified
+        if not user.is_verified:
+            raise AuthenticationFailed('Account not verified, please verify your account before loging in.')
+        # Assert the account is not blocked
+        if not user.is_active:
+            raise AuthenticationFailed('Account disabled, please contact support.')
+        
+        return {
+            'email': user.email,
+            'name': user.name,
+            'surname': user.surname,
+            'tokens': user.tokens
+        }

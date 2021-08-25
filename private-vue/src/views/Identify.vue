@@ -3,29 +3,10 @@
         <h1>WELCOME USER!</h1>
         <div class="row">
             <div class="column">
-                <h2>ALREADY REGISTERED? LOG IN!</h2>
-                <div class="login-messages" v-if="login_messages.length > 0">
-                    <p v-for="message in login_messages" class="red" v-bind:key="message">{{message}}</p>
-                </div>
-                <form @submit.prevent="submitForm(0)">
-                    <br><input type="text" name="userEmail" placeholder="Email" v-model="l_email">
-                    <br><input type="password" name="userPassword" placeholder="Password" v-model="l_password">
-                    <br><br><button type="submit">Log in</button>
-                </form>
+                <LogIn/>
             </div>
             <div class="column">
-                <h2>FIRST TIME HERE? REGISTER!</h2>
-                <div class="signup-messages" v-if="signup_messages.length > 0">
-                    <p v-for="message in signup_messages" class="red" v-bind:key="message">{{message}}</p>
-                </div>
-                <form @submit.prevent="submitForm(1)">
-                    <br><input type="text" name="userName" placeholder="Name" v-model="s_name">
-                    <br><input type="text" name="userSurname" placeholder="Surname" v-model="s_surname">
-                    <br><input type="text" name="userEmail" placeholder="Email" v-model="s_email">
-                    <br><input type="password" name="userPassword" placeholder="Password" v-model="s_password">
-                    <br><input type="password" name="userPassword2" placeholder="Repeat password" v-model="s_password2">
-                    <br><br><button type="submit">Register</button>
-                </form>
+                <SignUp/>
             </div>
         </div>
     </div>
@@ -33,9 +14,14 @@
 
 <script>
 import axios from 'axios'
+import SignIn from '@/components/identify/LogIn.vue'
+import SignUp from '@/components/identify/SignUp.vue'
 
 export default {
     name: 'Identify',
+    components: [
+        SignIn, SignUp
+    ],
     data() {
         return {
             // Login fields

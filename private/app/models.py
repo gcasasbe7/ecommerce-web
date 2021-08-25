@@ -3,6 +3,7 @@ from PIL import Image
 from django.db import models
 from django.core.files import File
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserManager(BaseUserManager):
 
@@ -12,7 +13,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(name=name, surname=surname, email=self.normalize_email(email))
         user.set_password(password)
-        user.save(using=self.db)
+        user.save()
 
         return user
 
@@ -20,7 +21,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(name, email, surname, password)
         user.is_superuser = True
         user.is_admin = True
-        user.save(using=self.db)
+        user.save()
 
         return user
 
@@ -34,7 +35,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'surname']
 
     objects = UserManager()
 
@@ -50,6 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    def tokens(self):
+        refresh_token = RefreshToken.for_user(self)
+        return {'access_token' : str(refresh_token.access_token), 'refresh_token' : str(refresh_token)}
 
     @property
     def is_staff(self):

@@ -4,12 +4,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import (status, generics)
 from rest_framework.decorators import api_view
-from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer, RegisterSerializer
+from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer, RegisterSerializer, LoginSerializer
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
+import jwt
 from .email_manager import EmailManager
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+from django.conf import settings
 
 class AllProductsView(APIView):
     def get(self, request, format=None):
@@ -96,14 +98,14 @@ class RegisterView(generics.GenericAPIView):
         # Fetch the current User Model Object
         user = User.objects.get(email=user_data['email'])
 
-        # Retrieve the access token for the user
+        # Retrieve the access token for the user by the user ID
         token = RefreshToken.for_user(user).access_token
 
         current_site = get_current_site(request)
         relative_link = reverse('verify-email')
         absolute_url = f'http://{current_site}{relative_link}?token={str(token)}'
 
-        email_body = f'Hello ${user.name}. Thanks for signing up with us, please press the link below to verify your account. \n{absolute_url}'
+        email_body = f'Hello {user.name}. Thanks for signing up with us, please press the link below to verify your account. \n{absolute_url}'
         email_subject = f'{user.name}, verify your account for iPadel'
         email_data = {
             'to': user.email,
@@ -115,8 +117,36 @@ class RegisterView(generics.GenericAPIView):
         return Response(user_data, status=status.HTTP_201_CREATED)
 
 class VerifyEmail(generics.GenericAPIView):
-    def get(self):
-        pass
+    def get(self, request):
+        token = request.GET.get('token')
+
+        try:
+            #import pdb
+            #pdb.set_trace()
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=payload['user_id'])
+
+            if user:
+                # Verify the user
+                user.is_verified = True
+                user.save()   
+                return Response({'result' : 'Account successfully verified'}, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError as identifier:
+            return Response({'result' : 'Activation link expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exceptions.DecodeError as identifier:
+            return Response({'result' : str(identifier)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginView(generics.GenericAPIView):
+    serializer = LoginSerializer
+
+    def post(self, request):
+        user = request.data
+        serializer = self.serializer(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])

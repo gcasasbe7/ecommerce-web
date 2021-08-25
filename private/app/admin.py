@@ -9,7 +9,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('added_date',)
     # Displayed data within sections
     fieldsets = (
-        ('Personal info', {'fields': ('name', 'surname', 'email',),}),
+        ('Personal info', {'fields': ('name', 'surname', 'email','is_verified', 'is_active'),}),
         #('Details', {'fields': ('province', 'city', 'date_joined', 'dni')}),
         #('Payments', {'fields': ('stripe_customer_id',)}),
         ('Permissions', {'fields': ('is_admin',),}),
@@ -23,7 +23,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     search_fields = ('email',)
-    #readonly_fields = ('date_joined', 'stripe_customer_id', 'password')
+    readonly_fields = ('is_verified', 'is_active','is_admin')
     ordering = ('name',)
     #ordering = ('date_joined', 'first_name', 'last_name', 'city')
     filter_horizontal = ()
