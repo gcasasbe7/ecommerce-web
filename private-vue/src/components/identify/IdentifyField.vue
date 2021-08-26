@@ -1,14 +1,11 @@
 <template>
-    <div class="identify-field">
-        <br><input 
-            v-bind:type="this.type" 
-            v-bind:placeholder="this.placeholder"
-            v-model="this.model">
+<div class="identify-field">
+    <br><input v-bind:type="this.type" v-bind:placeholder="this.placeholder" v-model="this.model">
 
-        <div class="signup-messages" v-if="errors.length > 0">
-            <p v-for="error in errors" class="red" v-bind:key="error">{{error}}</p>
-        </div>
-    </div>    
+    <div class="identify-field-messages" v-if="this.errors.length > 0 && this.display_errors">
+        <p v-for="error in errors" class="red" v-bind:key="error">{{error}}</p>
+    </div>
+</div>
 </template>
 
 <script>
@@ -17,35 +14,38 @@ export default {
     props: {
         type: String,
         validators: [Object],
-        placeholder: String
+        placeholder: String,
+        display_errors: Boolean,
+        password1: String
     },
     data() {
         return {
             model: '',
-            is_valid: false,
             errors: []
         }
     },
     methods: {
-        validate(){
+        validate() {
+            // Clean previous errors
             this.errors = []
-
-            if(this.model.length > 0){
-                this.validators.forEach(validator => {
-                    if(!validator.regex.test(this.model)){
-                        this.errors.push(validator.error)
-                        this.is_valid = false
-                    }
-                });
-            }
-            
-            return this.is_valid
-        }
+            // Declare result
+            let result = true
+            // Apply all the validations to the field
+            this.validators.forEach(validator => {
+                if(!validator.validate(this.model)){
+                    this.errors.push(validator.error)
+                    result = false
+                }
+            });
+            // Emit the result to the parent
+            this.set_valid(result)
+        },
+        set_valid(is_valid) {this.$emit('set_valid', is_valid, this.model)}
     },
     watch: {
-        'model' : function() {
-            this.validate()
-        }
+        'model': function () {this.validate()},
+        'display_errors': function () {this.validate()},
+        'password1': function () {this.validate()}
     }
 }
 </script>

@@ -1,18 +1,12 @@
 <template>
 <div class="sign-in-component">
     <h2>FIRST TIME HERE? REGISTER!</h2>
-    <form @submit.prevent="submitSignUpForm()">
-        <IdentifyField :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" />
-        <IdentifyField :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" />
-        <IdentifyField :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" />
-        <IdentifyField :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" />
-        <IdentifyField :type="this.repeat_password_field.type" :validators="this.repeat_password_field.validators" :placeholder="this.repeat_password_field.placeholder" />
-
-        <!-- <br><input type="text" name="userName" placeholder="Name" v-model="s_name">
-        <br><input type="text" name="userSurname" placeholder="Surname" v-model="s_surname">
-        <br><input type="text" name="userEmail" placeholder="Email" v-model="s_email">
-        <br><input type="password" name="userPassword" placeholder="Password" v-model="s_password">
-        <br><input type="password" name="userPassword2" placeholder="Repeat password" v-model="s_password2"> -->
+    <form @submit.prevent="submit_signup_form()">
+        <IdentifyField @set_valid="set_valid_name" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors"/>
+        <IdentifyField @set_valid="set_valid_surname" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors"/>
+        <IdentifyField @set_valid="set_valid_email" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors"/>
+        <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors"/>
+        <IdentifyField @set_valid="set_valid_repeat_password" :type="this.repeat_password_field.type" :validators="this.repeat_password_field.validators" :placeholder="this.repeat_password_field.placeholder" :display_errors="this.display_errors" :password1="this.password_field.value"/>
         <br><br><button type="submit">Register</button>
     </form>
 </div>
@@ -27,11 +21,9 @@ export default {
     components: {
         IdentifyField
     },
-    mounted() {
-        console.log("")
-    },
     data() {
         return {
+            display_errors: false,
             email_field: config.email_field,
             password_field: config.password_field,
             repeat_password_field: config.repeat_password_field,
@@ -40,22 +32,50 @@ export default {
         }
     },
     methods: {
-        submitSignUpForm() {
-            if (this.validate_fields()) {
-                /* 
-                COMMUNICATE CHILDER IDENTIFYFIELDS TO VALIDATE THEMSELVES
-                FETCH THE RESULT FROM ALL THE IDENTIFY FIELDS
-                IF ALL THE VALIDATIONS ARE CORRECT
+        submit_signup_form() {
+            this.display_errors = true
 
-                SHOOT THE API LOG IN CALL
-                
-                ELSE DO NOTHING (IDENTIFYFIELDS WILL DISPLAY THE CONVENIENT ERRORS)
-                */
+            if (this.validate_fields()) {
+                this.display_errors = false
+                console.log("ALL GOOOOOOD")
             }
         },
         validate_fields() {
+            return this.name_field.is_valid &&
+                this.surname_field.is_valid &&
+                this.email_field.is_valid &&
+                this.password_field.is_valid &&
+                this.repeat_password_field.is_valid
+        },
+        set_valid_name(is_valid, value){
+            this.name_field.is_valid=is_valid
+            this.name_field.value=value
+        },
+        set_valid_surname(is_valid, value){
+            this.surname_field.is_valid=is_valid
+            this.surname_field.value=value
+        },
+        set_valid_email(is_valid, value){
+            this.email_field.is_valid=is_valid
+            this.email_field.value=value
+        },
+        set_valid_password(is_valid, value){
+            this.password_field.is_valid=is_valid
+            this.password_field.value=value
             
-        }
+            // Hook the password 1 to the validator object to perform the check
+            this.repeat_password_field.validators[0].password1 = this.password_field.value
+            // When the password 1 field is updated, the repeated password field is also verified
+            //this.display_errors = false
+
+            // todo refactor: Can validators define their own validate method using regex or func?
+            // todo refactor: Can IdentityFields recieve one parent object in props?
+            // todo new component that will contain both password 1 and 2 fields (RegisterPasswordsIdentityFields)
+        },
+        set_valid_repeat_password(is_valid, value){
+            this.repeat_password_field.is_valid=is_valid 
+            this.repeat_password_field.value=value
+        },
     }
 }
 </script>

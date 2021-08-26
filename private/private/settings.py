@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     
     # Define our custom project dependencies
     'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
     'rest_framework_simplejwt',
     # Bind our application module
