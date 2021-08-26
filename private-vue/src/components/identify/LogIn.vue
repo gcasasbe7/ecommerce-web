@@ -9,8 +9,6 @@
     <form @submit.prevent="submit_login_form()">
         <IdentifyField @set_valid="set_valid_email" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors"/>
         <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors"/>
-        <!-- <br><input type="text" name="userEmail" placeholder="Email" v-model="email">
-        <br><input type="password" name="userPassword" placeholder="Password" v-model="password"> -->
         <br><br><button type="submit">Log in</button>
     </form>
 </div>
@@ -40,7 +38,6 @@ export default {
             this.display_errors = true
 
             if (this.validate_fields()) {
-                this.display_errors = false
                 this.perform_login()
             }
         },

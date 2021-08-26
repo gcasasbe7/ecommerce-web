@@ -32,7 +32,7 @@ export default {
             let result = true
             // Apply all the validations to the field
             this.validators.forEach(validator => {
-                if(!validator.validate(this.model)){
+                if (!validator.validate(this.model)) {
                     this.errors.push(validator.error)
                     result = false
                 }
@@ -40,12 +40,20 @@ export default {
             // Emit the result to the parent
             this.set_valid(result)
         },
-        set_valid(is_valid) {this.$emit('set_valid', is_valid, this.model)}
+        set_valid(is_valid) {
+            this.$emit('set_valid', is_valid, this.model)
+        }
     },
     watch: {
-        'model': function () {this.validate()},
-        'display_errors': function () {this.validate()},
-        'password1': function () {this.validate()}
+        'model': function () {
+            this.validate()
+        },
+        'display_errors': function () {
+            this.validate()
+        },
+        'password1': function () {
+            this.validate()
+        }
     }
 }
 </script>
