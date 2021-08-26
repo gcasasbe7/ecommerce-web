@@ -1,6 +1,11 @@
 <template>
 <div class="sign-in-component">
     <h2>FIRST TIME HERE? REGISTER!</h2>
+    <div class="signup-errors" v-if="this.errors.length">
+        <p
+        v-for="error in this.errors"
+        :key="error">{{error}}</p>
+    </div>
     <form @submit.prevent="submit_signup_form()">
         <IdentifyField @set_valid="set_valid_name" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors"/>
         <IdentifyField @set_valid="set_valid_surname" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors"/>
@@ -21,6 +26,9 @@ export default {
     components: {
         IdentifyField
     },
+    props: {
+        errors: Array,
+    },
     data() {
         return {
             display_errors: false,
@@ -37,7 +45,7 @@ export default {
 
             if (this.validate_fields()) {
                 this.display_errors = false
-                console.log("ALL GOOOOOOD")
+                this.perform_signup()
             }
         },
         validate_fields() {
@@ -76,6 +84,14 @@ export default {
             this.repeat_password_field.is_valid=is_valid 
             this.repeat_password_field.value=value
         },
+        perform_signup(){
+            this.$emit('submit_form', {
+                'name': this.name_field.value,
+                'surname': this.surname_field.value,
+                'email': this.email_field.value,
+                'password': this.password_field.value
+            })
+        }
     }
 }
 </script>

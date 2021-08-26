@@ -1,6 +1,11 @@
 <template>
 <div class="sign-in-component">
     <h2>ALREADY REGISTERED? LOG IN!</h2>
+    <div class="login-errors" v-if="this.errors.length">
+        <p
+        v-for="error in this.errors"
+        :key="error">{{error}}</p>
+    </div>
     <form @submit.prevent="submit_login_form()">
         <IdentifyField @set_valid="set_valid_email" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors"/>
         <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors"/>
@@ -19,6 +24,9 @@ export default {
     name: 'LogIn',
     components: {
         IdentifyField
+    },
+    props: {
+        errors: Array,
     },
     data() {
         return {

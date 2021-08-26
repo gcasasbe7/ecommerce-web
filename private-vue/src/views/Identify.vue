@@ -3,10 +3,10 @@
         <h1>WELCOME USER!</h1>
         <div class="row">
             <div class="column">
-                <LogIn @submit_form="complete_login"/>
+                <LogIn @submit_form="complete_login" :errors="this.login_errors"/>
             </div>
             <div class="column">
-                <SignUp @submit_form="complete_signup"/>
+                <SignUp @submit_form="complete_signup" :errors="this.signup_errors"/>
             </div>
         </div>
     </div>
@@ -22,29 +22,51 @@ export default {
     components: [
         SignIn, SignUp
     ],
+    data() {
+        return {
+            login_errors: [],
+            signup_errors: []
+        }
+    },
     methods: {
         complete_login(login_data){
-            console.log("login", login_data)
+            this.login_errors = []
+
+            axios  
+                .post("/api/v1/login/", login_data)
+                .then(response => {
+                    console.log(response)
+                    // Update tokens
+                })
+                .catch(error => {
+                    if(error.response){
+                        for(const property in error.response.data){
+                            this.login_errors.push(error.response.data[property])
+                        }
+                    } else if (error.message) {
+                        this.login_errors.push(`Something went wrong, please try again later (${error.message})`)
+                    }
+                })
         },
 
         complete_signup(signup_data){
-            console.log("signup", signup_data)
-            /*axios  
-                .post("/api/v1/users/", form_data)
+           this.signup_errors = []
+            axios  
+                .post("/api/v1/register/", signup_data)
                 .then(response => {
-                    console.log(`An email has been sent to ${this.s_email}. Please verify your account by pressing the link provided inside the email content.`)
+                    console.log(response)
                     // Display dialog with the above message
                 })
                 .catch(error => {
                     if(error.response){
                         for(const property in error.response.data){
-                            //console.log("wtf")
+                            this.signup_errors.push(error.response.data[property])
                             //this.signup_messages.push(`${property}: ${error.response.data[property]} `)
                         }
                     } else if (error.message) {
-                        this.signup_messages.push("Something went wrong")
+                        this.signup_errors.push(`Something went wrong, please try again later (${error.message})`)
                     }
-                })*/
+                })
         }
     }
 }
