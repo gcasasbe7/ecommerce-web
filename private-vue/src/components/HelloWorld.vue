@@ -46,19 +46,10 @@ export default {
     document.title = "Hola | iPadel"
   },
   methods: {
-    addToCart() {
-      // Todo check we have a valid quantity to add to the basket
-      
-      // Build the item object to be added to the basket
-      const item = {
-        product: {
-          "id": 2,
-          "name": "BullPadel Vertex 2",
-        },
-        quantity: 3
-      }
+    async addToCart() {
+      this.$store.commit('setIsApplicationLoading', true)
 
-      this.$store.commit('addToCart', item)
+      await new Promise(r => setTimeout(r, 2000))
 
       this.$store.commit('setIsApplicationLoading', false)
     },
