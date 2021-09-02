@@ -99,3 +99,6 @@ db.sqlite3
 ### Migrations ###
 private/app/migrations/*.py
 
+### Media ###
+privatemedia/uploads/*
+
