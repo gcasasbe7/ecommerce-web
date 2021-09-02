@@ -4,7 +4,7 @@
             <div class="column">
                 <h2>Product Categories</h2>
                 
-                <div v-for="category in all_categories" :key="category.id">
+                <div v-for="category in all_categories" :key="category">
                     <router-link v-bind:to="category.absolute_url">{{category.name}}</router-link>
                 </div>
             </div>
@@ -52,12 +52,19 @@ export default {
             await axios
                 .get(`/api/v1/shop/${categorySlug}/`)
                 .then(response => {
-                    this.selected_category = response.data.category_detail
-                    this.all_categories = response.data.all_categories
-                    document.title = this.selected_category.name + " | iPadel"
+                    // Do we have products to display in the current category?
+                    if(response.data.category_detail.products.length > 0){
+                        this.selected_category = response.data.category_detail
+                        this.all_categories = response.data.all_categories
+                        document.title = this.selected_category.name + " | iPadel"
+                    } else {
+                        // Redirect to the main shop view
+                        this.$router.push('/shop')
+                    }
+                    
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.$router.push('/shop')
                 })
 
             this.$store.commit('setIsApplicationLoading', false)

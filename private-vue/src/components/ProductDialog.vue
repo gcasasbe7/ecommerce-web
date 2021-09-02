@@ -1,7 +1,7 @@
 <template>
     <div class="product-dialog">
         <!-- todo: import dialog from styles lib -->
-        <img v-bind:src="product.display_image">
+        <img v-bind:src="product.cover_image">
 
         <h1>{{product.name}}</h1>
         <h2>{{product.description}}</h2>

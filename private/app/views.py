@@ -8,10 +8,12 @@ from .serializers import CategoryShopListSerializer, CategorySerializer, Product
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 import jwt
-from .email_manager import EmailManager
+from .managers.email_manager import EmailManager
+from .managers.highlight_manager import HighlightManager
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
+import json
 
 class AllProductsView(APIView):
     def get(self, request, format=None):
@@ -26,7 +28,7 @@ class AllProductsView(APIView):
 class ShopProductDetail(APIView):
     def get_object(self, product_slug, category_slug):
         try:
-            return Product.objects.filter(main_category__slug=category_slug).get(slug=product_slug)
+            return Product.objects.filter(category__slug=category_slug).get(slug=product_slug)
         except Product.DoesNotExist:
             raise Http404
 
@@ -43,9 +45,12 @@ class CategoriesList(APIView):
     def get(self, request, format=None):
         categories = Category.objects.all()
         serializer = CategoryShopListSerializer(categories, many=True)
-            
+
         if serializer.is_valid:
-            return Response(serializer.data)
+            return Response({
+                'categories': serializer.data,
+                'highlight': HighlightManager.getHighlightCategory() if HighlightManager.shouldDisplayHighlights() else ''
+            })
         else: 
             return Response({'message': "Serializer not valid"})
 
@@ -66,7 +71,9 @@ class ShopView(APIView):
 
 class ShopCategoryDetail(APIView):
     def get_object(self, category_slug):
-        try:
+        try:  
+            if category_slug == HighlightManager.slug:
+                return HighlightManager.getHighlightCategoryDetail()
             return Category.objects.get(slug=category_slug)
         except Category.DoesNotExist:
             raise Http404
@@ -76,12 +83,16 @@ class ShopCategoryDetail(APIView):
         all_categories = Category.objects.all()
 
         serializer = CategorySerializer(category)
-        all_categories_serializer = CategoryShopListSerializer(all_categories, many=True)
-            
+        all_categories_serializer = CategoryShopListSerializer(all_categories, many=True)    
+
+        categories_data = all_categories_serializer.data
+        if HighlightManager.shouldDisplayHighlights():
+            categories_data.append(HighlightManager.getHighlightCategory())
+
         if serializer.is_valid:
             return Response({
                 'category_detail': serializer.data,
-                'all_categories': all_categories_serializer.data
+                'all_categories': categories_data
                 })
         else: 
             return Response({'message': "Serializer not valid"})
@@ -121,8 +132,6 @@ class VerifyEmail(generics.GenericAPIView):
         token = request.GET.get('token')
 
         try:
-            #import pdb
-            #pdb.set_trace()
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user = User.objects.get(id=payload['user_id'])
 

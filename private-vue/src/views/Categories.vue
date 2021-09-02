@@ -3,7 +3,7 @@
         <div class="row">
             <CategoryBox 
                 v-for="category in this.categories" 
-                v-bind:key="category.id"
+                v-bind:key="category"
                 v-bind:category="category"
             />
         </div>
@@ -36,7 +36,11 @@ export default {
             await axios
                 .get('/api/v1/categories')
                 .then(response => {
-                    this.categories = response.data
+                    this.categories = response.data.categories
+
+                    if(response.data.highlight){
+                        this.categories.push(response.data.highlight)
+                    }
                 })
                 .catch(error => {
                     console.log(error)

@@ -28,8 +28,20 @@ class UserAdmin(BaseUserAdmin):
     #ordering = ('date_joined', 'first_name', 'last_name', 'city')
     filter_horizontal = ()
 
+class ProductImageAdmin(admin.StackedInline):
+    model = ProductImage
+
+class ProductAdmin(admin.ModelAdmin):
+    inlines = [ProductImageAdmin]
+
+    class Meta:
+        model = Product
+
+class ProductImageAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Category)
-admin.site.register(Product)
+admin.site.register(Product, ProductAdmin)
 admin.site.register(Brand)
 admin.site.register(ProductImage)

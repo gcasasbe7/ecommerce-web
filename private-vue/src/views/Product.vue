@@ -3,11 +3,18 @@
         <div class="row">
             <div class="column">
                 <router-link v-bind:to="`/shop/${category_slug}`">Continue shopping</router-link>
+                <br>
                 <img v-bind:src="product.image_absolute_url" style="width:400px;height:400px;">
+                <img
+                    v-for="image in product.images"
+                    v-bind:key="image"
+                    v-bind:src="image.absolute_url" 
+                    style="width:400px;height:400px;">
+
             </div>
             <div class="column">
-                <h1>{{product.name}} (${{product.price}})</h1>
-                <h1>{{product.display_image}}</h1>
+                <h1>{{product.name}} ({{product.price}}€)</h1>
+                <h1>{{product.cover_image}}</h1>
                 <h2>{{product.description}}</h2>
                 <br>
                 <button @click="addToCart">Add to cart</button>
