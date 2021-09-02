@@ -48,7 +48,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => Categories
+    component: Categories
   },
   {
     path: '/shop/:category_slug',
@@ -56,7 +56,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => Shop
+    component: Shop
   },
   {
     path: '/shop/:category_slug/:product_slug',
@@ -64,7 +64,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => Product
+    component: Product
   }
 ]
 

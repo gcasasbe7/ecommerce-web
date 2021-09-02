@@ -11,8 +11,6 @@
 
                 <button @click="removeItem(this.item)"><i class="fa fa-trash"></i></button>
             </div>
-            
-            
         </div>
     </div>
 </template>
@@ -50,6 +48,7 @@ export default {
         },
         updateCart() {
             localStorage.setItem('cart', JSON.stringify(this.$store.state.cart))
+
         }
     },
 }
