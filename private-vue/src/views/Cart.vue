@@ -6,6 +6,7 @@
     <button @click="clearCart">Clear cart</button>
 
     <CartItem 
+        v-on:itemModified="updateTitle"
         v-for="item in this.cart.items" 
         v-bind:key="item.product.id"
         v-bind:cartItem="item"
@@ -52,6 +53,9 @@ export default {
         clearCart() {
             this.$store.commit('clearCart')
         },
-    }
+        updateTitle() {
+            document.title = `Cart (${this.cartSize}) | iPadel`
+        }
+    },
 }
 </script>

@@ -45,9 +45,13 @@ export default {
         },
         removeItem(item){
             this.$store.commit('removeFromCart', item)
+            // Notify the Cart view
+            this.$emit('itemModified')
         },
         updateCart() {
             localStorage.setItem('cart', JSON.stringify(this.$store.state.cart))
+            // Notify the Cart view
+            this.$emit('itemModified')
         }
     },
 }
