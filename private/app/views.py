@@ -1,7 +1,6 @@
-from django.http import Http404
 from django.db.models import Q
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from .managers.response_manager import ResponseManager
 from rest_framework import (status, generics)
 from rest_framework.decorators import api_view
 from .serializers import CategoryShopListSerializer, CategorySerializer, ProductSerializer, RegisterSerializer, LoginSerializer
@@ -13,90 +12,79 @@ from .managers.highlight_manager import HighlightManager
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
-import json
 
-class AllProductsView(APIView):
-    def get(self, request, format=None):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-            
-        if serializer.is_valid:
-            return Response(serializer.data)
-        else: 
-            return Response({'message': "Serializer not valid"})
-
+# Product detail shop view
 class ShopProductDetail(APIView):
     def get_object(self, product_slug, category_slug):
         try:
             return Product.objects.filter(category__slug=category_slug).get(slug=product_slug)
         except Product.DoesNotExist:
-            raise Http404
+            return None
 
     def get(self, request, product_slug, category_slug, format=None):
         product = self.get_object(product_slug, category_slug)
-        serializer = ProductSerializer(product)
-            
-        if serializer.is_valid:
-            return Response(serializer.data)
-        else: 
-            return Response({'message': "Serializer not valid"})
 
+        if product:
+            serializer = ProductSerializer(product)
+                
+            if serializer.is_valid:
+                return ResponseManager.build_successful_response({
+                    'product': serializer.data
+                    })
+            else: 
+                return ResponseManager.build_invalid_response(status.HTTP_406_NOT_ACCEPTABLE, "There has been an issue with the product you are trying to view. Please try again later.")
+
+        return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, "Product not found. Please try again later.")
+
+# Categories list including Hihglighted section if valid
 class CategoriesList(APIView):
     def get(self, request, format=None):
         categories = Category.objects.all()
         serializer = CategoryShopListSerializer(categories, many=True)
 
         if serializer.is_valid:
-            return Response({
+            return ResponseManager.build_successful_response({
                 'categories': serializer.data,
                 'highlight': HighlightManager.getHighlightCategory() if HighlightManager.shouldDisplayHighlights() else ''
             })
         else: 
-            return Response({'message': "Serializer not valid"})
+            return ResponseManager.build_invalid_response(status.HTTP_406_NOT_ACCEPTABLE, "There has been an issue with some category you are trying to view. Please try again later.")
 
-class ShopView(APIView):
-    def get(self, request, format=None):
-        # Fetch all the shop categories
-        categories = Category.objects.all()
-        
-        # Validate the data
-        categories_serializer = CategoryShopListSerializer(categories, many=True)
-                
-        if categories_serializer.is_valid:
-            return Response({
-                    "categories": categories_serializer.data,
-                })
-        else: 
-            return Response({'message': "Serializer not valid"})
-
+# Category detail shop view
 class ShopCategoryDetail(APIView):
     def get_object(self, category_slug):
-        try:  
+        try:
+            # Are we trying to fetch the detail for the Highlighted section?
             if category_slug == HighlightManager.slug:
                 return HighlightManager.getHighlightCategoryDetail()
             return Category.objects.get(slug=category_slug)
         except Category.DoesNotExist:
-            raise Http404
+            return None
 
     def get(self, request, category_slug, format=None):
         category = self.get_object(category_slug)
         all_categories = Category.objects.all()
 
-        serializer = CategorySerializer(category)
-        all_categories_serializer = CategoryShopListSerializer(all_categories, many=True)    
+        if category:
+            serializer = CategorySerializer(category)
+            all_categories_serializer = CategoryShopListSerializer(all_categories, many=True)    
+            categories_data = all_categories_serializer.data
 
-        categories_data = all_categories_serializer.data
-        if HighlightManager.shouldDisplayHighlights():
-            categories_data.append(HighlightManager.getHighlightCategory())
+            # Do we have any highlighted products to display?
+            if HighlightManager.shouldDisplayHighlights():
+                categories_data.append(HighlightManager.getHighlightCategory())
 
-        if serializer.is_valid:
-            return Response({
-                'category_detail': serializer.data,
-                'all_categories': categories_data
-                })
-        else: 
-            return Response({'message': "Serializer not valid"})
+            if serializer.is_valid:
+                return ResponseManager.build_successful_response({
+                    'category_detail': serializer.data,
+                    'all_categories': categories_data
+                    })
+            else: 
+                return ResponseManager.build_invalid_response(status.HTTP_406_NOT_ACCEPTABLE, "There has been an issue fetching the category you are trying to view. Please try again later.")
+        
+        return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, "Category not found. Please try again later.")
 
+# Registration view
 class RegisterView(generics.GenericAPIView):
 
     def post(self, request):
@@ -123,10 +111,15 @@ class RegisterView(generics.GenericAPIView):
             'body': email_body,
             'subject': email_subject
         }
+
+        # Send the registration email
         EmailManager.sendEmail(email_data)
 
-        return Response(user_data, status=status.HTTP_201_CREATED)
+        return ResponseManager.build_successful_response({
+            'user_data': user_data
+        })
 
+# Email verification view
 class VerifyEmail(generics.GenericAPIView):
     def get(self, request):
         token = request.GET.get('token')
@@ -138,14 +131,19 @@ class VerifyEmail(generics.GenericAPIView):
             if user:
                 # Verify the user
                 user.is_verified = True
-                user.save()   
-                return Response({'result' : 'Account successfully verified'}, status=status.HTTP_200_OK)
+                user.save()
+                return ResponseManager.build_successful_response({
+                    'result' : f'Good news {user.name}, your account has been successfuly verified!'
+                    })
 
-        except jwt.ExpiredSignatureError as identifier:
-            return Response({'result' : 'Activation link expired'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.exceptions.DecodeError as identifier:
-            return Response({'result' : str(identifier)}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            # Delete the user to allow the customer to sign up again with the same details
+            user.delete()
+            return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 'The activation link has expired for security reasons. You can generate a new one by registering again.')
+        except jwt.exceptions.DecodeError:
+            return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 'There has been an error with your verification link. Please try again or contact a member of staff.')
 
+# Login view
 class LoginView(generics.GenericAPIView):
     serializer = LoginSerializer
 
@@ -154,20 +152,21 @@ class LoginView(generics.GenericAPIView):
         serializer = self.serializer(data=user)
         serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+        return ResponseManager.build_successful_response({
+            'result' : serializer.data
+            })
 
 @api_view(['POST'])
 def search(request):
     query = request.data.get('query', '')
 
-    print("asdjhflakjsdhflkjasdhf")
     if query:
         products = Product.objects.filter(Q(name__icontains=query) | Q(description__icontains=query))
         serializer = ProductSerializer(products, many=True)
 
         if serializer.is_valid:
-            return Response(serializer.data)
-
-    return Response({"products":[]})
+            return ResponseManager.build_successful_response({
+                'result' : serializer.data
+                })
+    else:
+        return ResponseManager.build_successful_response({})

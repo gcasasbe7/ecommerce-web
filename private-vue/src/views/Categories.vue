@@ -7,12 +7,11 @@
                 v-bind:category="category"
             />
         </div>
-        
     </div>
 </template>
 
 <script>
-import axios from 'axios'
+import ApiHelper from '@/helpers/api_helper'
 import CategoryBox from '@/components/CategoryBox.vue'
 
 export default {
@@ -31,22 +30,23 @@ export default {
     },
     methods: {
         async getCategories() {
-            this.$store.commit('setIsApplicationLoading', true)
-
-            await axios
-                .get('/api/v1/categories')
-                .then(response => {
+            // Declare the callbacks
+            const callback = {
+                success: (response) => {
                     this.categories = response.data.categories
 
                     if(response.data.highlight){
                         this.categories.push(response.data.highlight)
                     }
-                })
-                .catch(error => {
+                },
+                error: (error) => {
+                    // Todo: Error messaging
                     console.log(error)
-                })
+                }
+            }
 
-            this.$store.commit('setIsApplicationLoading', false)
+            // Fetch the current category detail from the Api
+            ApiHelper.getCategories(callback)
         }
     }
 }

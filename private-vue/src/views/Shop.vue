@@ -17,7 +17,6 @@
 
 <script>
 import ApiHelper from '@/helpers/api_helper'
-import axios from 'axios'
 import CategoryViewer from '@/components/CategoryViewer'
 import CategoryBox from '@/components/CategoryBox'
 

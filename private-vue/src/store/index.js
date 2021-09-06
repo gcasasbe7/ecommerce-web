@@ -12,6 +12,7 @@ export default createStore({
     isAuthenticated: false,
     authToken: '',
     isApplicationLoading: false,
+    previousPath: '',
   },
 
   /* Mutations: Define the data modifications as no direct editions are allowed */
@@ -61,5 +62,7 @@ export default createStore({
   },
 
   modules: {
-  }
+  },
+  /* Define store getters */
+  getters: {}
 })

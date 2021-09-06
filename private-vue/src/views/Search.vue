@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import ApiHelper from '@/helpers/api_helper.js'
 import ProductBox from '@/components/ProductBox.vue'
 
 export default {
@@ -41,22 +41,18 @@ export default {
         },
 
         async performSearch() {
-            // Assert the application is loading
-            this.$store.commit('setIsApplicationLoading', true)
-
-            // Build the request
-            const url = "/api/v1/products/search/"
-            await axios
-                .post(url, {'query' : this.query})
-                .then(response => {
-                    this.products = response.data
-                })
-                .catch(error => {
+            // Declare the callbacks
+            const callback = {
+                success: (response) => {
+                    this.products = response.data.result
+                },
+                error: (error) => {
                     console.log(error)
-                })
+                }
+            }
 
-            // Assert we have finished loading the view
-            this.$store.commit('setIsApplicationLoading', false)
+            // Perform the search in the backend application
+            ApiHelper.performSearch(callback, {'query':this.query})
         }
     }
 }

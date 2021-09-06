@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import ApiHelper from '@/helpers/api_helper.js'
 import SignIn from '@/components/identify/LogIn.vue'
 import SignUp from '@/components/identify/SignUp.vue'
 
@@ -30,15 +30,16 @@ export default {
     },
     methods: {
         async complete_login(login_data) {
+            // Reset the login errors
             this.login_errors = []
-            this.$store.commit('setIsApplicationLoading', true)
-            await axios
-                .post("/api/v1/login/", login_data)
-                .then(response => {
+
+            // Declare the callbacks
+            const callback = {
+                success: (response) => {
                     console.log(response)
                     // Update tokens
-                })
-                .catch(error => {
+                },
+                error: (error) => {
                     if (error.response) {
                         for (const property in error.response.data) {
                             this.login_errors.push(error.response.data[property])
@@ -46,30 +47,37 @@ export default {
                     } else if (error.message) {
                         this.login_errors.push(`Something went wrong, please try again later (${error.message})`)
                     }
-                })
-            this.$store.commit('setIsApplicationLoading', false)
+                }
+            }
+
+            // Attempt to identify to the backend
+            ApiHelper.login(callback, login_data)
         },
 
         async complete_signup(signup_data) {
+            // Reset the signup errors
             this.signup_errors = []
-            this.$store.commit('setIsApplicationLoading', true)
-            await axios
-                .post("/api/v1/register/", signup_data)
-                .then(response => {
+
+            // Declare the callbacks
+            const callback = {
+                success: (response) => {
                     console.log(response)
-                    // Display dialog with the above message
-                })
-                .catch(error => {
+                    // Redirect
+                },
+                error: (error) => {
+                    console.log(error)
                     if (error.response) {
                         for (const property in error.response.data) {
                             this.signup_errors.push(error.response.data[property])
-                            //this.signup_messages.push(`${property}: ${error.response.data[property]} `)
                         }
                     } else if (error.message) {
                         this.signup_errors.push(`Something went wrong, please try again later (${error.message})`)
                     }
-                })
-            this.$store.commit('setIsApplicationLoading', false)
+                }
+            }
+
+            // Attempt to identify to the backend
+            ApiHelper.register(callback, signup_data)
         }
     }
 }

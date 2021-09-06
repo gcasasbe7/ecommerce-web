@@ -6,29 +6,129 @@ class ApiData {
     static BASE_API_URL = '/api/v1'
     // Valid response code
     static VALID_RESPONSE_CODE     = 200
+    // Successful Api Call Fallback
+    static positive(callback, response) {
+        // Decapsulate the response data
+        response = response.data
+        // Is the response valid?
+        if(response.status === ApiData.VALID_RESPONSE_CODE){
+            // Execute the callback with success
+            callback.success(response)
+        }else {
+            // Fallback to the error scenario for non expected status
+            callback.error(response.message)
+        }
+    }
+    // Invalid Api Call Fallback
+    static negative(callback, error) {
+        // Fallback to the error scenario
+        callback.error(error)
+    }
 }
 
 export default {
     /**
+     * Api Endpoint:    Login
+     * Method:          POST
+     * Api Url:         /api/v1/login/
+     * Required Params: [Post request params: {'email' : "value", 'password' : "value"}]
+     * @param {Object} callback     ~> Success and error scenarios
+     * @param {String} login_data   ~> User login credentials
+     */
+     async login(callback, login_data) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/login/`
+        // Launch the Api call providing callback actions
+        this.performApiPostCall(url, callback, login_data)
+    },
+
+
+    /**
+     * Api Endpoint:    Register
+     * Method:          POST
+     * Api Url:         /api/v1/register/
+     * Required Params: [Post request params: {'name' : "value",'surname' : "value",'email' : "value", 'password' : "value"}]
+     * @param {Object} callback      ~> Success and error scenarios
+     * @param {String} signup_data   ~> User registration credentials
+     */
+     async register(callback, signup_data) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/register/`
+        // Launch the Api call providing callback actions
+        this.performApiPostCall(url, callback, signup_data)
+    },
+
+
+    /**
      * Api Endpoint:    Get Category Detail
+     * Method:          GET
      * Api Url:         /api/v1/shop/${categorySlug}/
-     * Required Params: ${categorySlug} 
+     * Required Params: [${categorySlug}]
      * @param {Object} callback      ~> Success and error scenarios
      * @param {String} categorySlug  ~> Current category to fetch
      */
     async getCategoryDetail(callback, categorySlug) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/`
-        // Launch the Api call
-        this.performApiCall(url, callback)
+        // Launch the Api call providing callback actions
+        this.performApiGetCall(url, callback)
     },
 
+
     /**
-     * Root method to fire the api calls
+     * Api Endpoint:    Get Categories
+     * Method:          GET
+     * Api Url:         /api/v1/categories
+     * Required Params: []
+     * @param {Object} callback ~> Success and error scenarios
+     */
+     async getCategories(callback) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/categories`
+        // Launch the Api call providing callback actions
+        this.performApiGetCall(url, callback)
+    },
+
+
+    /**
+     * Api Endpoint:    Get Product Detail
+     * Method:          GET
+     * Api Url:         /api/v1/shop/${categorySlug}/${productSlug}/
+     * Required Params: [${categorySlug}, ${productSlug}]
+     * @param {Object} callback      ~> Success and error scenarios
+     * @param {String} categorySlug  ~> Current category to fetch
+     * @param {String} productSlug   ~> Current product to fetch
+     */
+     async getProductDetail(callback, categorySlug, productSlug) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/${productSlug}`
+        // Launch the Api call providing callback actions
+        this.performApiGetCall(url, callback)
+    },
+
+
+    /**
+     * Api Endpoint:    Search products
+     * Method:          POST
+     * Api Url:         /api/v1/products/search/
+     * Required Params: [Post request params: {'query' : "value"}]
+     * @param {Object} callback ~> Success and error scenarios
+     * @param {Object} query    ~> Search query
+     */
+     async performSearch(callback, query) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/products/search/`
+        // Launch the Api call providing callback actions
+        this.performApiPostCall(url, callback, query)
+    },
+
+
+    /**
+     * Root method to fire the GET api calls
      * @param {String} url      ~> Endpoint url to hit
      * @param {Object} callback ~> Success and error scenarios
      */
-    async performApiCall(url, callback){
+    async performApiGetCall(url, callback){
         // Assert the application is loading while the asynchronous call is executed
         store.commit('setIsApplicationLoading', true)
 
@@ -36,20 +136,42 @@ export default {
         await axios
             .get(url)
             .then(response => {
-                // todo remove
-                callback.success(response)
-                // Is the response valid?
-                if(response.response_code === ApiData.VALID_RESPONSE_CODE){
-                    // Execute the callback with success
-                    callback.success(response)
-                }
+                // Execute the success callback
+                ApiData.positive(callback, response)
             })
             .catch(error => {
                 // Execute the callback with errors
-                callback.error(error)
+                ApiData.negative(callback, error)
             })
         
         // Assert the application has finished loading the asynchronous call
         store.commit('setIsApplicationLoading', false)
-    }
+    },
+
+
+    /**
+     * Root method to fire the POST api calls
+     * @param {String} url          ~> Endpoint url to hit
+     * @param {Object} callback     ~> Success and error scenarios
+     * @param {Object} post_params  ~> POST parameters
+     */
+     async performApiPostCall(url, callback, post_params){
+        // Assert the application is loading while the asynchronous call is executed
+        store.commit('setIsApplicationLoading', true)
+
+        // Perform the api call through Axios
+        await axios
+            .post(url, post_params)
+            .then(response => {
+                // Execute the success callback
+                ApiData.positive(callback, response)
+            })
+            .catch(error => {
+                // Execute the callback with errors
+                ApiData.negative(callback, error)
+            })
+        
+        // Assert the application has finished loading the asynchronous call
+        store.commit('setIsApplicationLoading', false)
+    },
 }

@@ -7,6 +7,7 @@ import Search from '@/views/Search.vue'
 import Cart from '@/views/Cart.vue'
 import Checkout from '@/views/Checkout.vue'
 import Identify from '@/views/Identify.vue'
+import store from '../store'
 
 const routes = [
   {
@@ -70,7 +71,10 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
+  routes,
+  // Persist the previous path in the Vuex Store
+  scrollBehavior(to, from, savedPosition) {
+    store.state.previousPath = from.fullPath},
 })
 
 export default router

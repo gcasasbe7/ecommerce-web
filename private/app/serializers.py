@@ -80,10 +80,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 class LoginSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=68, min_length=8, write_only=True)
-    name = serializers.CharField(max_length=68, min_length=8, read_only=True)
-    surname = serializers.CharField(max_length=68, min_length=8, read_only=True)
-    email = serializers.CharField(max_length=68)
+    password = serializers.CharField(write_only=True)
+    name = serializers.CharField(read_only=True)
+    surname = serializers.CharField(read_only=True)
+    email = serializers.CharField()
 
     class Meta:
         model = User

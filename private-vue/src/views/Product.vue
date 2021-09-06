@@ -2,7 +2,7 @@
     <div class="product-page">
         <div class="row">
             <div class="column">
-                <router-link v-bind:to="`/shop/${category_slug}`">Continue shopping</router-link>
+                <router-link v-bind:to="this.$store.state.previousPath">Continue shopping</router-link>
                 <br>
                 <img v-bind:src="product.image_absolute_url" style="width:400px;height:400px;">
                 <img
@@ -25,14 +25,13 @@
 </template>
 
 <script>
-import axios from 'axios'
+import ApiHelper from '@/helpers/api_helper.js'
 
 export default {
     name: 'Product',
     data() {
         return {
             product: {},
-            category_slug: "",
         }
     },
     mounted() {
@@ -40,23 +39,24 @@ export default {
     },
     methods: {
         async getProduct() {
-            this.$store.commit('setIsApplicationLoading', true)
+            // Fetch the url param
+            const categorySlug = this.$route.params.category_slug
+            const productSlug  = this.$route.params.product_slug
 
-            this.category_slug = this.$route.params.category_slug
-            const productSlug = this.$route.params.product_slug
-
-            await axios
-                .get(`/api/v1/shop/${this.category_slug}/${productSlug}`)
-                .then(response => {
-                    this.product = response.data
-
+            // Declare the callbacks
+            const callback = {
+                success: (response) => {
+                    this.product = response.data.product
                     document.title = this.product.name + " | iPadel"
-                })
-                .catch(error => {
+                },
+                error: (error) => {
+                    // Todo: Error messaging
                     console.log(error)
-                })
+                }
+            }
 
-            this.$store.commit('setIsApplicationLoading', false)
+            // Fetch the current category detail from the Api
+            ApiHelper.getProductDetail(callback, categorySlug, productSlug)
         },
         addToCart(){
             this.$store.commit('setIsApplicationLoading', true)
