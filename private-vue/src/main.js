@@ -6,6 +6,11 @@ import axios from 'axios'
 import LogIn from '@/components/identify/LogIn.vue'
 import SignUp from '@/components/identify/SignUp.vue'
 
+// Bootstrap import
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'jquery/src/jquery.js'
+import 'bootstrap/dist/js/bootstrap.min.js'
+
 // Define axios Base URL
 axios.defaults.baseURL = 'http://127.0.0.1:8000'
 
