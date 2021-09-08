@@ -84,7 +84,7 @@ export default {
      */
      async getCategories(callback) {
         // Declare the url
-        const url = `${ApiData.BASE_API_URL}/categories`
+        const url = `${ApiData.BASE_API_URL}/categories/`
         // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
