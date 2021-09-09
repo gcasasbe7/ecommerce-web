@@ -7,6 +7,7 @@ import Search from '@/views/Search.vue'
 import Cart from '@/views/Cart.vue'
 import Checkout from '@/views/Checkout.vue'
 import Identify from '@/views/Identify.vue'
+import ResetPasswordView from '@/views/ResetPasswordView.vue'
 import store from '../store'
 
 const routes = [
@@ -66,7 +67,13 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: Product
-  }
+  },
+  {
+    path: '/account/reset-password/:uidb64/:token',
+    name: 'ResetPasswordView',
+    component: ResetPasswordView
+  },
+
 ]
 
 const router = createRouter({

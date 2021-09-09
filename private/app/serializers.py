@@ -1,23 +1,32 @@
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.db.models import fields
 from rest_framework import serializers
 from .models import *
 from django.contrib import auth
 from rest_framework.exceptions import AuthenticationFailed
+from django.utils.encoding import (
+    DjangoUnicodeDecodeError, force_str, smart_bytes, smart_str)
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ('absolute_url',)
 
+
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = ('name', 'logo_url')
 
+
 class CategoryShopListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name','absolute_url', 'image_url')
+        fields = ('name', 'absolute_url', 'image_url')
+
 
 class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
@@ -37,6 +46,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_available'
         )
 
+
 class CategorySerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True)
 
@@ -49,12 +59,14 @@ class CategorySerializer(serializers.ModelSerializer):
             'products',
         )
 
+
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=68, min_length=8, write_only=True)
+    password = serializers.CharField(
+        max_length=68, min_length=8, write_only=True)
 
     class Meta:
         model = User
-        fields = ('name', 'surname', 'email', 'password')        
+        fields = ('name', 'surname', 'email', 'password')
 
     def validate(self, attrs):
         email = attrs.get('email', '')
@@ -71,13 +83,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         # Valid surname?
         if not surname:
-            raise serializers.ValidationError("Please introduce a valid surname")
+            raise serializers.ValidationError(
+                "Please introduce a valid surname")
 
         return attrs
 
     def create(self, validated_data):
         # Override with our own definition of User
         return User.objects.create_user(**validated_data)
+
 
 class LoginSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -97,17 +111,62 @@ class LoginSerializer(serializers.ModelSerializer):
         user = auth.authenticate(email=email, password=password)
         # Raise exception for unvalid authentication
         if not user:
-            raise AuthenticationFailed('Invalid credentials, please try again.')
+            raise AuthenticationFailed(
+                'Invalid credentials, please try again.')
         # Assert the account is verified
         if not user.is_verified:
-            raise AuthenticationFailed('Account not verified, please verify your account before loging in.')
+            raise AuthenticationFailed(
+                'Account not verified, please verify your account before loging in.')
         # Assert the account is not blocked
         if not user.is_active:
-            raise AuthenticationFailed('Account disabled, please contact support.')
-        
+            raise AuthenticationFailed(
+                'Account disabled, please contact support.')
+
         return {
             'email': user.email,
             'name': user.name,
             'surname': user.surname,
             'tokens': user.tokens
         }
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.CharField()
+
+    class Meta:
+        fields = ['email']
+
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    uidb64 = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
+
+    class Meta:
+        fields = ['password', 'repeat_password', 'uidb64', 'token']
+
+    def validate(self, attrs):
+        try:
+            password = attrs.get('password', '')
+            uidb64 = attrs.get('uidb64', '')
+            token = attrs.get('token', '')
+
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(id=user_id)
+
+            if not PasswordResetTokenGenerator().check_token(user=user, token=token):
+                raise AuthenticationFailed(
+                    'The reset password link has expired for security reasons. Please repeat the resetting password process to generate a new valid link')
+
+            # Set the new password encoded by Djando set_password method
+            user.set_password(password)
+            user.save()
+
+            return user
+
+        except User.DoesNotExist:
+            raise AuthenticationFailed(
+                'The reset password link is not valid for your user. Please try again or contact a member of staff')
+        except UnicodeDecodeError:
+            raise AuthenticationFailed(
+                'There has been an error with your reset password link. Please try the process again or contact a member of staff')
