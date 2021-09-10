@@ -103,7 +103,7 @@ class Product(models.Model):
         ordering = ('-added_date',)
 
     def __str__(self):
-        return self.name
+        return self.name + ( ' (*)' if self.highlight else '')
 
     def is_available(self):
         return self.stock > 0

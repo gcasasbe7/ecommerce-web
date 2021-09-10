@@ -30,7 +30,7 @@ const routes = [
     component: Search
   },
   {
-    path: '/login',
+    path: '/identify',
     name: 'Identify',
     component: Identify
   },

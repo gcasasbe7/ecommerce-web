@@ -1,11 +1,11 @@
 <template>
 <div class="reset-password-component">
+    <h1>Introduce your new password</h1>
     <form @submit.prevent="submit_reset_password_form()">
         <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors" />
         <IdentifyField @set_valid="set_valid_repeat_password" :type="this.repeat_password_field.type" :validators="this.repeat_password_field.validators" :placeholder="this.repeat_password_field.placeholder" :display_errors="this.display_errors" :password1="this.password_field.value" />
         <br><br><button type="submit">Set new password</button>
     </form>
-
 </div>
 </template>
 

@@ -7,12 +7,12 @@
     <router-link to="/about">About</router-link> |
     <router-link to="/shop">Shop</router-link> |
     <router-link to="/cart">Cart ({{cartSize}})</router-link> |
-    <router-link to="/login">Account</router-link>
+    <router-link to="/identify">Account</router-link>
     <div>
         <form method="get" action="/search">
-            <input type="text" class="input" name="query" placeholder="Search anything...">
+            <input type="text" class="input" name="query" placeholder="Search anything..." v-model="this.search_query">
             <div class="control">
-                <button>
+                <button @click="submit_search">
                     <span class="icon">
                         <i class="fas fa-search"></i>
                     </span>
@@ -31,6 +31,7 @@ export default {
             cart: {
                 items: [],
             },
+            search_query: ''
         }
     },
     beforeCreate() {
@@ -44,6 +45,14 @@ export default {
             return this.cart.items.reduce((acc, val) => {
                 return acc += val.quantity
             }, 0)
+        }
+    },
+    methods: {
+        // Prevent the search for empty queries
+        submit_search(e) {
+            if(this.search_query.length < 1){
+                e.preventDefault();
+            }
         }
     }
 }
@@ -75,5 +84,3 @@ export default {
     color: #850101;
 }
 </style>
-
-

@@ -1,9 +1,12 @@
 <template>
 <div class="reset-password">
-    <h1>Introduce your new password</h1>
-    <div class="row" v-if="this.success">
+    <div class="row" v-if="this.valid_link">
         <div class="column">
-            <ResetPassword @submit_form="complete_reset_password" />
+            <ResetPassword v-if="!this.password_successfuly_reseted" @submit_form="complete_reset_password" />
+            <div v-else>
+                <h1>Password reset was successful! Press the button below to log in</h1>
+                <button @click="redirect_to_identification">Log In</button>
+            </div>
         </div>
     </div>
     <div class="row" v-else>
@@ -26,7 +29,8 @@ export default {
     },
     data() {
         return {
-            success: true,
+            password_successfuly_reseted: false,
+            valid_link: true,
             uidb64: '',
             token: '',
             error: ''
@@ -38,14 +42,9 @@ export default {
     },
     methods: {
         check_reset_password_link(){
-
+            // Fetch the url parameters
             const uidb64_param = this.$route.params.uidb64
             const token_param  = this.$route.params.token
-
-            // API get call http://127.0.0.1:8000/api/v1/check-reset-password/{uidb64}/{token}
-
-            // If valid response render reset password component
-            // Else render reset password empty view with error message
 
             // Declare the callbacks
             const callback = {
@@ -54,7 +53,7 @@ export default {
                     this.token = response.data.token
                 },
                 error: (error) => {
-                    this.success = false
+                    this.valid_link = false
                     this.error = error
                     // Todo: Error messaging
                 }
@@ -65,20 +64,17 @@ export default {
         },
 
         complete_reset_password(reset_password_data){
+            // Build the reset password data object
             reset_password_data = {
                 'password': reset_password_data.password,
                 'uidb64': this.uidb64,
                 'token': this.token
             }
-            // API PATCH call http://127.0.0.1:8000/api/v1/complete-reset-password/
-            //"password": "Something22",
-            //"uidb64": "MQ",
-            //"token": "asnvoj-1a3d3a324ca34fd12f926f906c28e7a3"
-
 
             // Declare the callbacks
             const callback = {
                 success: (response) => {
+                    this.password_successfuly_reseted = true
                     console.log("Password reset successful")
                 },
                 error: (error) => {
@@ -89,6 +85,9 @@ export default {
 
             // Fetch the current category detail from the Api
             ApiHelper.setNewPassword(callback, reset_password_data)
+        },
+        redirect_to_identification(){
+            this.$router.push('/identify')
         }
     }
 }
