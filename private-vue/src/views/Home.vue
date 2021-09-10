@@ -12,12 +12,12 @@
             <div class="toast-header">
                 <div class="success rounded me-2" style="height:20px; width: 20px"></div>
                 <strong class="me-auto">Item added to your basket</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="success_toast" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
-            <div class="toast-body toast-body-bg" style="background-color:">
+            <div class="toast-body toast-body-bg">
                 Siux Spartan has been added to your basket
             </div>
-            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px">
+            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px; cursor:pointer">
                 <div class="vertical-center">
                     See my basket<i class="fa fa-chevron-right" aria-hidden="true" style="margin-left:10px"></i>
                 </div>
@@ -33,7 +33,7 @@
             <div class="toast-body toast-body-bg">
                 Siux Spartan has been added to your basket
             </div>
-            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px">
+            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px; cursor:pointer">
                 <div class="vertical-center">
                     See my basket<i class="fa fa-chevron-right" aria-hidden="true" style="margin-left:10px"></i>
                 </div>
@@ -49,7 +49,7 @@
             <div class="toast-body toast-body-bg">
                 Siux Spartan has been added to your basket
             </div>
-            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px">
+            <div class="toast-footer d-flex justify-content-center toast-footer-bg" style="padding:10px; cursor:pointer">
                 <div class="vertical-center">
                     See my basket<i class="fa fa-chevron-right" aria-hidden="true" style="margin-left:10px"></i>
                 </div>

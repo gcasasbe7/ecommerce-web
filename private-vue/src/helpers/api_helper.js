@@ -101,7 +101,24 @@ export default {
      */
      async getProductDetail(callback, categorySlug, productSlug) {
         // Declare the url
-        const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/${productSlug}`
+        const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/${productSlug}/`
+        // Launch the Api call providing callback actions
+        this.performApiGetCall(url, callback)
+    },
+
+
+    /**
+     * Api Endpoint:    Check Reset Password Link
+     * Method:          GET
+     * Api Url:         /api/v1/check-reset-password/${uidb64}/${token}
+     * Required Params: [${uidb64}, ${token}]
+     * @param {Object} callback ~> Success and error scenarios
+     * @param {String} uidb64   ~> User Id 64 Base Encoded
+     * @param {String} token    ~> User Password Reset Token
+     */
+     async checkResetPasswordToken(callback, uidb64, token) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/check-reset-password/${uidb64}/${token}/`
         // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
@@ -120,6 +137,22 @@ export default {
         const url = `${ApiData.BASE_API_URL}/products/search/`
         // Launch the Api call providing callback actions
         this.performApiPostCall(url, callback, query)
+    },
+
+
+    /**
+     * Api Endpoint:    Set new password
+     * Method:          PATCH
+     * Api Url:         /api/v1/complete-reset-password/
+     * Required Params: [Patch request params: {'uidb64' : "value", "token": "value", "password": "value"}]
+     * @param {Object} callback ~> Success and error scenarios
+     * @param {Object} data     ~> Set new password required data
+     */
+     async setNewPassword(callback, data) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/complete-reset-password/`
+        // Launch the Api call providing callback actions
+        this.performApiPatchCall(url, callback, data)
     },
 
 
@@ -174,4 +207,31 @@ export default {
         // Assert the application has finished loading the asynchronous call
         store.commit('setIsApplicationLoading', false)
     },
+    
+    
+    /**
+    * Root method to fire the PATCH api calls
+    * @param {String} url          ~> Endpoint url to hit
+    * @param {Object} callback     ~> Success and error scenarios
+    * @param {Object} patch_params  ~> PATCH parameters
+    */
+    async performApiPatchCall(url, callback, patch_params){
+       // Assert the application is loading while the asynchronous call is executed
+       store.commit('setIsApplicationLoading', true)
+
+       // Perform the api call through Axios
+       await axios
+           .patch(url, patch_params)
+           .then(response => {
+               // Execute the success callback
+               ApiData.positive(callback, response)
+           })
+           .catch(error => {
+               // Execute the callback with errors
+               ApiData.negative(callback, error)
+           })
+       
+       // Assert the application has finished loading the asynchronous call
+       store.commit('setIsApplicationLoading', false)
+   },
 }

@@ -43,6 +43,7 @@ const PASSWORDS_MATCH = {
 }
 
 export default {
+    // Login form validators definition
     login_validators: {
         email_validators: [EMAIL_VALIDATOR],
         password_validators: [
@@ -51,6 +52,7 @@ export default {
             PASSWORD_CONTAINS_CAPITAL_VALIDATOR
         ]
     },
+    // Sign up form validators definition
     signup_validators: {
         email_validators: [EMAIL_VALIDATOR],
         password_validators: [
@@ -62,5 +64,16 @@ export default {
             PASSWORDS_MATCH,
         ],
         text_validators: [NOT_EMPTY_TEXT_VALIDATOR, VALID_TEXT_VALIDATOR]
+    },
+    // Reset password form validators definition
+    reset_password_validators: {
+        password_validators: [
+            PASSWORD_LENGTH_VALIDATOR, 
+            PASSWORD_CONTAINS_NUMBER_VALIDATOR, 
+            PASSWORD_CONTAINS_CAPITAL_VALIDATOR
+        ],
+        repeat_password_validators: [
+            PASSWORDS_MATCH,
+        ],
     }
 }
