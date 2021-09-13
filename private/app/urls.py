@@ -14,4 +14,6 @@ urlpatterns = [
     path('categories/', views.CategoriesList.as_view()),
     path('shop/<slug:category_slug>/', views.ShopCategoryDetail.as_view()),
     path('shop/<slug:category_slug>/<slug:product_slug>/', views.ShopProductDetail.as_view()),
+
+    path('checkout/make-payment/', views.MakePaymentView.as_view()),
 ]

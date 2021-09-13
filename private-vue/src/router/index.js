@@ -42,7 +42,10 @@ const routes = [
   {
     path: '/cart/checkout',
     name: 'Checkout',
-    component: Checkout
+    component: Checkout,
+    meta: {
+      requireLogin: true
+    }
   },
   {
     path: '/shop',

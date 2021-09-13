@@ -21,3 +21,5 @@ app.use(store).use(router).mount('#app')
 // Custom components declaration for global use
 app.component('LogIn', LogIn)
 app.component('SignUp', SignUp)
+
+// 

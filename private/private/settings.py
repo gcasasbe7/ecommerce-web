@@ -123,6 +123,9 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Stripe secret key definition
+STRIPE_API_KEY = os.environ.get('STRIPE_SECRET_KEY')
+APP_CURRENCY = 'eur'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/

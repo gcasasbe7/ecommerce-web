@@ -35,6 +35,14 @@ export default {
         this.cart = this.$store.state.cart
         document.title = `Cart (${this.cartSize}) | iPadel`
     },
+    methods: {
+        clearCart() {
+            this.$store.commit('clearCart')
+        },
+        updateTitle() {
+            document.title = `Cart (${this.cartSize}) | iPadel`
+        }
+    },
     computed: {
         cartSize() {
             return this.cart.items.reduce((acc, val) => {
@@ -47,14 +55,6 @@ export default {
             }, 0)
 
             return val.toFixed(2)
-        }
-    },
-    methods: {
-        clearCart() {
-            this.$store.commit('clearCart')
-        },
-        updateTitle() {
-            document.title = `Cart (${this.cartSize}) | iPadel`
         }
     },
 }

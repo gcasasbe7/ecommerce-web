@@ -1,5 +1,7 @@
+from .managers.thread_manager import CheckOrderThread
 import jwt
 import os
+import stripe
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -11,13 +13,14 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .managers.email_manager import EmailManager
 from .managers.highlight_manager import HighlightManager
 from .managers.response_manager import ResponseManager
 from .models import *
 from .serializers import *
 
+# Set the stripe API Key
+stripe.api_key = settings.STRIPE_API_KEY
 
 # Product detail shop view
 class ShopProductDetail(APIView):
@@ -127,7 +130,7 @@ class RegisterView(generics.GenericAPIView):
         })
 
 # Email verification view
-class VerifyEmail(generics.GenericAPIView):
+class VerifyEmail(generics.GenericAPIView): 
     def get(self, request):
         token = request.GET.get('token')
 
@@ -247,3 +250,44 @@ class SetNewPasswordView(generics.GenericAPIView):
         return ResponseManager.build_successful_response({
             'result': 'Your password has been reset successfuly.'
         })
+
+# Make a payment View
+class MakePaymentView(generics.GenericAPIView):
+
+    def post(self, request):
+        data = request.data
+
+        try:
+            # Fetch the values from the request
+            basket      = data['basket']
+            user_data   = data['user_data']
+
+            # Valid request data?
+            if not basket or not user_data:
+                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
+                'Invalid request')
+        
+            # Declare the check order thread
+            order_thread = CheckOrderThread(basket=basket, user_data=user_data)
+            # Perform a sanity check to the order in a background thread
+            order_thread.start()
+            # Obtain the data from the thread safely
+            order = order_thread.join()
+            # Prepare the response
+            if order['valid']:
+                # Create the stripe Payment Intent
+                payment_intent = stripe.PaymentIntent.create(
+                    amount=OrderManager.eur_to_cent(order['total_amount']),
+                    currency=settings.APP_CURRENCY
+                )
+                # Bind the client secret to the response
+                return ResponseManager.build_successful_response({
+                'result': payment_intent['client_secret']
+            })
+            else:
+                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
+                ', '.join(order['errors']))
+
+        except Exception as ex:
+            return ResponseManager.build_invalid_response(status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                f"There has been an issue with the server. Please try again later ({str(ex)})")

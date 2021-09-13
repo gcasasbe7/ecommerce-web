@@ -98,6 +98,7 @@ class Product(models.Model):
     cover_image = models.ImageField(upload_to='uploads/product_images/', blank=True, null=True)
     stock = models.IntegerField()
     highlight = models.BooleanField(default=False)
+    show = models.BooleanField(default=True)
 
     class Meta:
         ordering = ('-added_date',)

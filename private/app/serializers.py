@@ -1,13 +1,13 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.db.models import fields
+from django.conf import settings
 from rest_framework import serializers
 from .models import *
+from .managers.order_manager import OrderManager
 from django.contrib import auth
-from rest_framework.exceptions import AuthenticationFailed
-from django.utils.encoding import (
-    DjangoUnicodeDecodeError, force_str, smart_bytes, smart_str)
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework_simplejwt.tokens import RefreshToken
+import stripe
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
