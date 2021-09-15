@@ -13,6 +13,7 @@
         />
 
     <router-link to="/cart/checkout"><button>Proceed to checkout</button></router-link>
+    
     </div>
 </template>
 
@@ -41,7 +42,7 @@ export default {
         },
         updateTitle() {
             document.title = `Cart (${this.cartSize}) | iPadel`
-        }
+        },
     },
     computed: {
         cartSize() {

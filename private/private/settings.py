@@ -125,6 +125,7 @@ USE_TZ = True
 
 # Stripe secret key definition
 STRIPE_API_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_CHECKOUT_SESSION_WEBHOOK_SECRET = os.environ.get('STRIPE_CHECKOUT_SESSION_WEBHOOK_SECRET')
 APP_CURRENCY = 'eur'
 
 # Static files (CSS, JavaScript, Images)

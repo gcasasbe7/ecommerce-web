@@ -157,6 +157,28 @@ export default {
 
 
     /**
+     * Api Endpoint:    Checkout
+     * Method:          POST
+     * Api Url:         /api/v1/checkout/
+     * Required Params: [Post request params: {'user_data' : {"token": "value"},
+     *                                         'basket' : {basket_content & basket_creation_date}}]
+     * @param {Object} callback ~> Success and error scenarios
+     * @param {Object} data     ~> Checkout data
+     */
+     async checkout(callback, data) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/checkout/`
+        // Launch the Api call providing callback actions
+        this.performApiPostCall(url, callback, data)
+    },
+
+
+
+
+
+
+
+    /**
      * Root method to fire the GET api calls
      * @param {String} url      ~> Endpoint url to hit
      * @param {Object} callback ~> Success and error scenarios

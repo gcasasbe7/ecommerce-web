@@ -1,4 +1,4 @@
-from .managers.thread_manager import CheckOrderThread
+from django.http.response import HttpResponse
 import jwt
 import os
 import stripe
@@ -7,8 +7,10 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 from django.urls import reverse
-from django.utils.encoding import (DjangoUnicodeDecodeError, force_str, smart_bytes, smart_str)
+from django.utils.encoding import (smart_bytes, smart_str)
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -16,6 +18,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .managers.email_manager import EmailManager
 from .managers.highlight_manager import HighlightManager
 from .managers.response_manager import ResponseManager
+from .managers.thread_manager import CheckOrderThread
+from .managers.order_manager import OrderManager
 from .models import *
 from .serializers import *
 
@@ -251,12 +255,12 @@ class SetNewPasswordView(generics.GenericAPIView):
             'result': 'Your password has been reset successfuly.'
         })
 
-# Make a payment View
-class MakePaymentView(generics.GenericAPIView):
-
+# Creates a Stripe Payment Intent if the basket content and the user are valid
+class CreatePaymentIntentView(generics.GenericAPIView):
     def post(self, request):
-        data = request.data
 
+        data = request.data
+        
         try:
             # Fetch the values from the request
             basket      = data['basket']
@@ -273,17 +277,33 @@ class MakePaymentView(generics.GenericAPIView):
             order_thread.start()
             # Obtain the data from the thread safely
             order = order_thread.join()
+            
             # Prepare the response
             if order['valid']:
                 # Create the stripe Payment Intent
-                payment_intent = stripe.PaymentIntent.create(
+                intent = stripe.PaymentIntent.create(
                     amount=OrderManager.eur_to_cent(order['total_amount']),
                     currency=settings.APP_CURRENCY
                 )
-                # Bind the client secret to the response
+                # Return the client secret
                 return ResponseManager.build_successful_response({
-                'result': payment_intent['client_secret']
-            })
+                    'client_secret': intent['client_secret']
+                })
+
+                # Create a new Order
+                # order = {
+                #     "user": order['user'],
+                #     "stripe_checkout_session_id": session.id,
+                #     "stripe_payment_intent_id": session.payment_intent,
+                #     "basket": basket,
+                # }
+                #    
+                # serializer = OrderSerializer(data=order)
+                # 
+                # if serializer.is_valid():
+                #     # Save the order
+                #     order_instance = serializer.save()
+
             else:
                 return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
                 ', '.join(order['errors']))
@@ -291,3 +311,76 @@ class MakePaymentView(generics.GenericAPIView):
         except Exception as ex:
             return ResponseManager.build_invalid_response(status.HTTP_500_INTERNAL_SERVER_ERROR, 
                 f"There has been an issue with the server. Please try again later ({str(ex)})")
+
+'''
+WebHook to retain real time information frmo the Checkout procedures
+Events handled in this webhook:
+- Checkout session payment failed:       checkout.session.async_payment_failed
+- Checkout session payment succeeded:    checkout.session.async_payment_succeeded
+- Checkout session completed:            checkout.session.completed
+- Checkout session expired:              checkout.session.expired
+'''
+@csrf_exempt
+@require_POST
+def checkout_stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+    endpoint_secret = settings.STRIPE_CHECKOUT_SESSION_WEBHOOK_SECRET
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        raise e
+
+    # Events handling
+    if event['type'] == 'payment_intent.created':
+        payment_intent = event['data']['object']
+        print(f"\n\n\n\n\n\nPAYMENT INTENT CREATED!\n\n\n\n\n\n")
+    if event['type'] == 'checkout.session.async_payment_failed':
+        checkout = event['data']['object']
+    elif event['type'] == 'checkout.session.async_payment_succeeded':
+        checkout = event['data']['object']
+        print(f"\n\n\n\n\n\nPAYMENT SUCCEEDED!\n\n\n\n\n\n")
+    elif event['type'] == 'checkout.session.completed':
+        checkout = event['data']['object']
+        print(f"\n\n\n\n\n\nCHECKOUT SESSION COMPLETED!\n\n\n\n\n\n")
+    elif event['type'] == 'checkout.session.expired':
+        checkout = event['data']['object']
+
+    else:
+        print('Unhandled event type {}'.format(event['type']))
+
+    return HttpResponse(status=200)
+
+class TestView(generics.GenericAPIView):
+    
+    def get(self, request):
+        ok = stripe.Price.list()
+        # product = Product.objects.get(id=4)
+        # stripe_product = stripe.Product.create(
+        #     api_key=settings.STRIPE_API_KEY,
+        #     id=product.id,
+        #     name=product.name,
+        #     description=product.description,
+        #     images=[product.image_absolute_url]
+        # )
+
+        # stripe_product_price = stripe.Price.create(
+        #     api_key=settings.STRIPE_API_KEY,
+        #     unit_amount=OrderManager.eur_to_cent(product.price),
+        #     currency=settings.APP_CURRENCY,
+        #     product=stripe_product.id
+        # )
+
+        # # stripe_product = stripe.Product.retrieve('1')
+
+        return ResponseManager.build_successful_response({
+            'stripe_product_price': ok,
+        })

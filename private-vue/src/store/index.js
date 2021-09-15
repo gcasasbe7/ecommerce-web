@@ -6,8 +6,15 @@ import { createStore } from 'vuex'
 export default createStore({
   /* State: Persist all the application data variables */
   state: {
+    user: {
+      tokens: {
+        access: '',
+        refresh: ''
+      }
+    },
     cart: {
       items: [],
+      creation_date: '',
     },
     isAuthenticated: false,
     authToken: '',
@@ -26,6 +33,10 @@ export default createStore({
     },
 
     addToCart(state, item) {
+      if(state.cart.creation_date.length == 0){
+        state.cart.creation_date = new Date().toLocaleString();
+      }
+      
       const exists = state.cart.items.filter(i => i.product.id === item.product.id)
 
       if(exists.length){
@@ -43,11 +54,16 @@ export default createStore({
         this.state.cart.items.splice(index, 1);
       }
 
+      if (state.cart.items.length == 0) {
+        state.cart.creation_date = ''
+      }
+
       localStorage.setItem('cart', JSON.stringify(state.cart))  
     },
 
     clearCart(state) {
       state.cart.items = []
+      state.cart.creation_date = ''
 
       localStorage.setItem('cart', JSON.stringify(state.cart))    
     },
@@ -64,5 +80,16 @@ export default createStore({
   modules: {
   },
   /* Define store getters */
-  getters: {}
+  getters: {
+    get_formatted_cart: state => {
+      let f_cart = []
+      state.cart.items.forEach(element => {
+        f_cart.push({
+          "product_id": element.product.id,
+          "quantity": element.quantity
+        })
+      })
+      return f_cart
+    }
+  }
 })

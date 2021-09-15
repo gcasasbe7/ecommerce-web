@@ -1,13 +1,10 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.conf import settings
 from rest_framework import serializers
 from .models import *
-from .managers.order_manager import OrderManager
 from django.contrib import auth
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.exceptions import AuthenticationFailed 
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-import stripe
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -170,3 +167,19 @@ class SetNewPasswordSerializer(serializers.Serializer):
         except UnicodeDecodeError:
             raise AuthenticationFailed(
                 'There has been an error with your reset password link. Please try the process again or contact a member of staff')
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    stripe_checkout_session_id = models.CharField(max_length=255, null=False, blank=False)
+    stripe_payment_intent_id = models.CharField(max_length=255, null=False, blank=False)
+    basket = models.JSONField()
+
+    class Meta:
+        model = Order
+        fields = ['user', 'stripe_checkout_session_id', 'stripe_payment_intent_id', 'basket']

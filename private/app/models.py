@@ -1,9 +1,8 @@
-from io import BytesIO
-from PIL import Image
 from django.db import models
-from django.core.files import File
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from rest_framework_simplejwt.tokens import RefreshToken
+import requests
+from django.conf import settings
 
 class UserManager(BaseUserManager):
 
@@ -94,6 +93,7 @@ class Product(models.Model):
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    stripe_price_id = models.CharField(max_length=255)
     added_date = models.DateField(auto_now_add=True)
     cover_image = models.ImageField(upload_to='uploads/product_images/', blank=True, null=True)
     stock = models.IntegerField()
@@ -109,12 +109,16 @@ class Product(models.Model):
     def is_available(self):
         return self.stock > 0
 
-    # Returns the absolute url for this product using the slug attribute
     def absolute_url(self):
         return f'/shop/{self.category.slug}/{self.slug}/'
 
+    @property
     def image_absolute_url(self):
         return f'http://127.0.0.1:8000/media/{self.cover_image}/'
+
+    @property
+    def truncated_description(self):
+        return self.description[0:48] + '...'
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
@@ -125,3 +129,41 @@ class ProductImage(models.Model):
     
     def absolute_url(self):
         return f'http://127.0.0.1:8000/media/{self.images}/'
+
+class Order(models.Model):
+    user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=False, blank=False)
+    stripe_checkout_session_id = models.CharField(max_length=255, null=False, blank=False)
+    stripe_payment_intent_id = models.CharField(max_length=255, null=False, blank=False)
+    basket = models.JSONField()
+    creation_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'[{self.status}] Order by {self.user.name} ({self.total_amount}€ in {self.basket_size} products)'
+
+    @property
+    def status(self):
+        headers = {'Authorization': f'Bearer {settings.STRIPE_API_KEY}'}
+        req = requests.get(
+            url=f'https://api.stripe.com/v1/checkout/sessions/{self.stripe_checkout_session_id}',
+            headers=headers
+        )
+        if req.status_code == 200:
+            return req.json()['payment_status'].capitalize()
+        return '-'
+
+    @property
+    def total_amount(self):
+        total=0
+        try:
+            for item in self.basket['basket_content']:
+                total += round(Product.objects.get(id=item['product_id']).price * item['quantity'], 2)
+        except Exception:
+            return -1
+        return total
+
+    @property
+    def basket_size(self):
+        acc=0
+        for item in self.basket['basket_content']:
+            acc += item['quantity']
+        return acc
