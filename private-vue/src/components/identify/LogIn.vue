@@ -7,23 +7,22 @@
         :key="error">{{error}}</p>
     </div>
     <form @submit.prevent="submit_login_form()">
-        <IdentifyField @set_valid="set_valid_email" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors"/>
-        <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors"/>
+        <InputField @set_valid="set_valid_email" :label="this.email_field.label" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors"/>
+        <InputField @set_valid="set_valid_password" :label="this.password_field.label" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors"/>
         <a href="/shop"><small>Forgotten password?</small></a>
         <br><br><button type="submit">Log in</button>
-        
     </form>
 </div>
 </template>
 
 <script>
 import config from '@/components/identify/config/login_config.js'
-import IdentifyField from '@/components/identify/IdentifyField.vue'
+import InputField from '@/components/identify/InputField.vue'
 
 export default {
     name: 'LogIn',
     components: {
-        IdentifyField
+        InputField
     },
     props: {
         errors: Array,

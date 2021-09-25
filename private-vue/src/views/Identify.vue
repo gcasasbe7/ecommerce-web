@@ -1,12 +1,13 @@
 <template>
 <div class="identify-page">
-    <h1>WELCOME USER!</h1>
-    <div class="row">
-        <div class="column">
-            <LogIn @submit_form="complete_login" :errors="this.login_errors" />
-        </div>
-        <div class="column">
-            <SignUp @submit_form="complete_signup" :errors="this.signup_errors" />
+    <div class="container">
+        <div class="row">
+            <div class="column" style="padding: 0px 80px 0px 80px">
+                <LogIn @submit_form="complete_login" :errors="this.login_errors" />
+            </div>
+            <div class="column" style="padding: 0px 80px 0px 80px">
+                <SignUp @submit_form="complete_signup" :errors="this.signup_errors" />
+            </div>
         </div>
     </div>
 </div>
@@ -22,6 +23,9 @@ export default {
     components: [
         SignIn, SignUp
     ],
+    mounted() {
+        document.title = "Identify | iPadel"
+    },
     data() {
         return {
             login_errors: [],
@@ -36,8 +40,10 @@ export default {
             // Declare the callbacks
             const callback = {
                 success: (response) => {
-                    console.log(response)
-                    // Update tokens
+                    // Fetch the user data and update the store
+                    let data = response.data.result
+                    // Update the store
+                    this.$store.commit('onLoginUser', data)
                 },
                 error: (error) => {
                     if (error.response) {

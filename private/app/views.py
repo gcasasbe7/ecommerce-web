@@ -1,23 +1,31 @@
+from django.http.response import HttpResponse
 import jwt
 import os
+import stripe
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 from django.urls import reverse
-from django.utils.encoding import (DjangoUnicodeDecodeError, force_str, smart_bytes, smart_str)
+from django.utils.encoding import (smart_bytes, smart_str)
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import generics, status
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .managers.email_manager import EmailManager
 from .managers.highlight_manager import HighlightManager
 from .managers.response_manager import ResponseManager
+from .managers.thread_manager import CheckOrderThread
+from .managers.order_manager import OrderManager
 from .models import *
 from .serializers import *
 
+# Set the stripe API Key
+stripe.api_key = settings.STRIPE_API_KEY
 
 # Product detail shop view
 class ShopProductDetail(APIView):
@@ -92,7 +100,7 @@ class ShopCategoryDetail(APIView):
         return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, "Category not found. Please try again later.")
 
 # Registration view
-class RegisterView(generics.GenericAPIView):
+class RegisterView(APIView):
 
     def post(self, request):
         user = request.data
@@ -127,7 +135,7 @@ class RegisterView(generics.GenericAPIView):
         })
 
 # Email verification view
-class VerifyEmail(generics.GenericAPIView):
+class VerifyEmail(APIView): 
     def get(self, request):
         token = request.GET.get('token')
 
@@ -152,7 +160,7 @@ class VerifyEmail(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 'There has been an error with your verification link. Please try again or contact a member of staff.')
 
 # Login view
-class LoginView(generics.GenericAPIView):
+class LoginView(APIView):
     serializer = LoginSerializer
 
     def post(self, request):
@@ -182,7 +190,7 @@ def search(request):
         return ResponseManager.build_successful_response({})
 
 # Request a new reset password token
-class RequestResetPassword(generics.GenericAPIView):
+class RequestResetPassword(APIView):
     serializer = ResetPasswordSerializer
 
     def post(self, request):
@@ -218,7 +226,7 @@ class RequestResetPassword(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_406_NOT_ACCEPTABLE, "We couldn't find your email, please make sure you are introducing the correct address")
 
 # Check the validity of the password reset attempt
-class ResetPasswordCheckTokenView(generics.GenericAPIView):
+class ResetPasswordCheckTokenView(APIView):
 
     def get(self, request, uidb64, token):
         try:
@@ -237,7 +245,7 @@ class ResetPasswordCheckTokenView(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, 'The reset password link is not valid for your user. Please try again or contact a member of staff')
 
 # Set new password View
-class SetNewPasswordView(generics.GenericAPIView):
+class SetNewPasswordView(APIView):
     serializer = SetNewPasswordSerializer
 
     def patch(self, request):
@@ -246,4 +254,142 @@ class SetNewPasswordView(generics.GenericAPIView):
 
         return ResponseManager.build_successful_response({
             'result': 'Your password has been reset successfuly.'
+        })
+
+# Creates a Stripe Payment Intent if the basket content and the user are valid
+class CreatePaymentIntentView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request):
+
+        data = request.data
+        
+        try:
+            # Fetch the values from the request
+            basket      = data['basket']
+            user_data   = data['user_data']
+
+            # Valid request data?
+            if not basket or not user_data:
+                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
+                'Invalid request')
+        
+            # Declare the check order thread
+            order_thread = CheckOrderThread(basket=basket, user_data=user_data)
+            # Perform a sanity check to the order in a background thread
+            order_thread.start()
+            # Obtain the data from the thread safely
+            order = order_thread.join()
+            
+            # Prepare the response
+            if order['valid']:
+                # Create the stripe Payment Intent
+                intent = stripe.PaymentIntent.create(
+                    amount=OrderManager.eur_to_cent(order['total_amount']),
+                    currency=settings.APP_CURRENCY
+                )
+                # Return the client secret
+                return ResponseManager.build_successful_response({
+                    'client_secret': intent['client_secret']
+                })
+
+                # Create a new Order
+                # order = {
+                #     "user": order['user'],
+                #     "stripe_checkout_session_id": session.id,
+                #     "stripe_payment_intent_id": session.payment_intent,
+                #     "basket": basket,
+                # }
+                #    
+                # serializer = OrderSerializer(data=order)
+                # 
+                # if serializer.is_valid():
+                #     # Save the order
+                #     order_instance = serializer.save()
+
+            else:
+                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
+                ', '.join(order['errors']))
+
+        except Exception as ex:
+            return ResponseManager.build_invalid_response(status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                f"There has been an issue with the server. Please try again later ({str(ex)})")
+
+'''
+WebHook to retain real time information frmo the Checkout procedures
+Events handled in this webhook:
+- Checkout session payment failed:       checkout.session.async_payment_failed
+- Checkout session payment succeeded:    checkout.session.async_payment_succeeded
+- Checkout session completed:            checkout.session.completed
+- Checkout session expired:              checkout.session.expired
+'''
+@csrf_exempt
+@require_POST
+def checkout_stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+    endpoint_secret = settings.STRIPE_CHECKOUT_SESSION_WEBHOOK_SECRET
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        raise e
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        raise e
+
+    # Events handling
+    if event['type'] == 'payment_intent.created':
+        payment_intent = event['data']['object']
+        print(f"\n\n\n\n\n\nPAYMENT INTENT CREATED!\n\n\n\n\n\n")
+    if event['type'] == 'checkout.session.async_payment_failed':
+        checkout = event['data']['object']
+    elif event['type'] == 'checkout.session.async_payment_succeeded':
+        checkout = event['data']['object']
+        print(f"\n\n\n\n\n\nPAYMENT SUCCEEDED!\n\n\n\n\n\n")
+    elif event['type'] == 'checkout.session.completed':
+        checkout = event['data']['object']
+        print(f"\n\n\n\n\n\nCHECKOUT SESSION COMPLETED!\n\n\n\n\n\n")
+    elif event['type'] == 'checkout.session.expired':
+        checkout = event['data']['object']
+
+    else:
+        print('Unhandled event type {}'.format(event['type']))
+
+    return HttpResponse(status=200)
+
+
+
+class TestView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request):
+        
+        # ok = stripe.Price.list()
+        # product = Product.objects.get(id=4)
+        # stripe_product = stripe.Product.create(
+        #     api_key=settings.STRIPE_API_KEY,
+        #     id=product.id,
+        #     name=product.name,
+        #     description=product.description,
+        #     images=[product.image_absolute_url]
+        # )
+
+        # stripe_product_price = stripe.Price.create(
+        #     api_key=settings.STRIPE_API_KEY,
+        #     unit_amount=OrderManager.eur_to_cent(product.price),
+        #     currency=settings.APP_CURRENCY,
+        #     product=stripe_product.id
+        # )
+
+        # # stripe_product = stripe.Product.retrieve('1')
+
+        return ResponseManager.build_successful_response({
+            'result': request.META['STRIPE_SECRET_KEY'],
         })

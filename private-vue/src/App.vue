@@ -3,11 +3,22 @@
     <div class="red" v-if="$store.state.isApplicationLoading">
         APPLICATION LOADING
     </div>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link> |
-    <router-link to="/shop">Shop</router-link> |
-    <router-link to="/cart">Cart ({{cartSize}})</router-link> |
-    <router-link to="/identify">Account</router-link>
+
+    <div v-if="$store.getters.is_user_logged_in">
+        <router-link to="/">Home</router-link> |
+        <router-link to="/about">About</router-link> |
+        <router-link to="/shop">Shop</router-link> |
+        <router-link to="/cart">Cart ({{cartSize}})</router-link> |
+        <router-link to="/me">{{$store.state.user.name}}</router-link>
+    </div>
+    <div v-else>
+        <router-link to="/">Home</router-link> |
+        <router-link to="/about">About</router-link> |
+        <router-link to="/shop">Shop</router-link> |
+        <router-link to="/cart">Cart ({{cartSize}})</router-link> |
+        <router-link to="/identify">Account</router-link>
+    </div>
+
     <div>
         <form method="get" action="/search">
             <input type="text" class="input" name="query" placeholder="Search anything..." v-model="this.search_query">
@@ -50,7 +61,7 @@ export default {
     methods: {
         // Prevent the search for empty queries
         submit_search(e) {
-            if(this.search_query.length < 1){
+            if (this.search_query.length < 1) {
                 e.preventDefault();
             }
         }
@@ -82,5 +93,9 @@ export default {
 
 .red {
     color: #850101;
+}
+
+.fl {
+    float: left;
 }
 </style>

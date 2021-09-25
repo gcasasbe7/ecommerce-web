@@ -50,7 +50,7 @@ export default {
 
             // Declare the callbacks
             const callback = {
-                success: (response) => {
+                success: (response) => {                    
                     // Do we have products to display in the current category?
                     if (response.data.category_detail.products.length > 0) {
                         this.selected_category = response.data.category_detail

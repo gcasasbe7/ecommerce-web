@@ -5,6 +5,7 @@ import store from './store'
 import axios from 'axios'
 import LogIn from '@/components/identify/LogIn.vue'
 import SignUp from '@/components/identify/SignUp.vue'
+import InputField from '@/components/identify/InputField.vue'
 
 // Bootstrap import
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -19,5 +20,8 @@ const app = createApp(App)
 // Bind the route and the Vuex store and mount the app in the root divider
 app.use(store).use(router).mount('#app')
 // Custom components declaration for global use
+app.component('InputField', InputField)
 app.component('LogIn', LogIn)
 app.component('SignUp', SignUp)
+
+// 

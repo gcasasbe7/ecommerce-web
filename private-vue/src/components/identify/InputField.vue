@@ -1,7 +1,9 @@
 <template>
 <div class="identify-field">
-    <br><input v-bind:type="this.type" v-bind:placeholder="this.placeholder" v-model="this.model">
-
+    <div class="mb-3">
+        <label class="fl mb-1" v-bind:for="this.label">{{this.label}}</label>
+        <input class="form-control" v-bind:type="this.type" v-bind:placeholder="this.placeholder" v-model="this.model">
+    </div>
     <div class="identify-field-messages" v-if="this.errors.length > 0 && this.display_errors">
         <p v-for="error in errors" class="red" v-bind:key="error">{{error}}</p>
     </div>
@@ -10,13 +12,18 @@
 
 <script>
 export default {
-    name: 'IdentifyField',
+    name: 'InputField',
     props: {
         type: String,
         validators: [Object],
         placeholder: String,
         display_errors: Boolean,
-        password1: String
+        password1: String,
+        label: String,
+        value: String,
+    },
+    mounted() {
+        this.model = this.value
     },
     data() {
         return {
@@ -57,3 +64,9 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.fl {
+    float: left;
+}
+</style>

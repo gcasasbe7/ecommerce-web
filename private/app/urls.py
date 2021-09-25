@@ -14,4 +14,8 @@ urlpatterns = [
     path('categories/', views.CategoriesList.as_view()),
     path('shop/<slug:category_slug>/', views.ShopCategoryDetail.as_view()),
     path('shop/<slug:category_slug>/<slug:product_slug>/', views.ShopProductDetail.as_view()),
+
+    path('checkout/', views.CreatePaymentIntentView.as_view()),
+
+    path('test/', views.TestView.as_view())
 ]

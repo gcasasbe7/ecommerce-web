@@ -7,6 +7,7 @@ import Search from '@/views/Search.vue'
 import Cart from '@/views/Cart.vue'
 import Checkout from '@/views/Checkout.vue'
 import Identify from '@/views/Identify.vue'
+import Me from '@/views/Me.vue'
 import ResetPasswordView from '@/views/ResetPasswordView.vue'
 import store from '../store'
 
@@ -40,9 +41,20 @@ const routes = [
     component: Cart
   },
   {
+    path: '/me',
+    name: 'Me',
+    component: Me,
+    meta: {
+      requireLogin: true
+    }
+  },
+  {
     path: '/cart/checkout',
     name: 'Checkout',
-    component: Checkout
+    component: Checkout,
+    meta: {
+      requireLogin: true
+    }
   },
   {
     path: '/shop',

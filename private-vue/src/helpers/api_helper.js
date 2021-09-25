@@ -1,11 +1,14 @@
 import axios from 'axios'
 import store from '../store'
+import storageHelper from './storage_helper'
 
 class ApiData {
     // Base Api URL
-    static BASE_API_URL = '/api/v1'
+    static BASE_API_URL         = '/api/v1'
     // Valid response code
-    static VALID_RESPONSE_CODE     = 200
+    static VALID_RESPONSE_CODE  = 200
+    // Failed Authentication response code
+    static UNAUTHORIZED         = 401
     // Successful Api Call Fallback
     static positive(callback, response) {
         // Decapsulate the response data
@@ -21,8 +24,24 @@ class ApiData {
     }
     // Invalid Api Call Fallback
     static negative(callback, error) {
+        // if(error.code === ApiData.UNAUTHORIZED) {
+        //     getNewTokenPair() -> If getNewTokenPair fails means the server wasn't able to 
+        //                          validate the user refresh token. LOG OUT
+        //     // todo retry last api call
+        // } else {
         // Fallback to the error scenario
         callback.error(error)
+    }
+    // Authentification header definition
+    static getAuthHeader() {
+        // Fetch the current user
+        let user = storageHelper.getUser()
+        // Ensure the auth header can be built correctly
+        if(user && user.tokens.access_token) {
+            return { Authorization: 'Bearer ' + user.tokens.access_token }
+        } else {
+            return {}
+        }
     }
 }
 
@@ -157,6 +176,28 @@ export default {
 
 
     /**
+     * Api Endpoint:    Checkout
+     * Method:          POST
+     * Api Url:         /api/v1/checkout/
+     * Required Params: [Post request params: {'user_data' : {"token": "value"},
+     *                                         'basket' : {basket_content & basket_creation_date}}]
+     * @param {Object} callback ~> Success and error scenarios
+     * @param {Object} data     ~> Checkout data
+     */
+     async checkout(callback, data) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/checkout/`
+        // Launch the Api call providing callback actions
+        this.performApiPostCall(url, callback, data)
+    },
+
+
+
+
+
+
+
+    /**
      * Root method to fire the GET api calls
      * @param {String} url      ~> Endpoint url to hit
      * @param {Object} callback ~> Success and error scenarios
@@ -167,7 +208,7 @@ export default {
 
         // Perform the api call through Axios
         await axios
-            .get(url)
+            .get(url, { headers: ApiData.getAuthHeader() })
             .then(response => {
                 // Execute the success callback
                 ApiData.positive(callback, response)
@@ -194,7 +235,7 @@ export default {
 
         // Perform the api call through Axios
         await axios
-            .post(url, post_params)
+            .post(url, post_params, { headers: ApiData.getAuthHeader() })
             .then(response => {
                 // Execute the success callback
                 ApiData.positive(callback, response)
@@ -221,7 +262,7 @@ export default {
 
        // Perform the api call through Axios
        await axios
-           .patch(url, patch_params)
+           .patch(url, patch_params, { headers: ApiData.getAuthHeader() })
            .then(response => {
                // Execute the success callback
                ApiData.positive(callback, response)
