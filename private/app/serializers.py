@@ -144,9 +144,9 @@ class SetNewPasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try:
-            password = attrs.get('password', '')
-            uidb64 = attrs.get('uidb64', '')
-            token = attrs.get('token', '')
+            password    = attrs.get('password', '')
+            uidb64      = attrs.get('uidb64', '')
+            token       = attrs.get('token', '')
 
             user_id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(id=user_id)

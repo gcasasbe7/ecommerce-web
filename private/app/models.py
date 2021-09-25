@@ -93,7 +93,6 @@ class Product(models.Model):
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
-    stripe_price_id = models.CharField(max_length=255)
     added_date = models.DateField(auto_now_add=True)
     cover_image = models.ImageField(upload_to='uploads/product_images/', blank=True, null=True)
     stock = models.IntegerField()

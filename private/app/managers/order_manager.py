@@ -31,7 +31,7 @@ class OrderManager:
         }
 
         # Check if the user is eligible to place an order
-        # user_validation = OrderManager.check_user(user_data['token'])
+        user_validation = OrderManager.check_user(user_data['token'])
         # Check if the basket is valid
         basket_validation = OrderManager.check_basket(basket)
         # Global validation
@@ -41,9 +41,9 @@ class OrderManager:
         if order['valid']:
             # Buffer the total price of the order
             order['total_amount'] = basket_validation['total_amount']
-            # # Buffer the user instance
-            # order['user'] = user_validation['user']
-            # # Buffer the basket content
+            # Buffer the user instance
+            order['user'] = user_validation['user']
+            # Buffer the basket content
             # order['basket'] = basket
         else:
             # Buffer the relevant errors
@@ -64,7 +64,6 @@ class OrderManager:
         # Define the response structure
         response = {
             'valid': '',
-            'user': {},
             'errors': []
         }
 
@@ -78,7 +77,6 @@ class OrderManager:
             if user:
                 if user.is_active:
                     response['valid'] = True
-                    response['user'] = user
                 else:
                     response['valid'] = False
                     response['errors'].append("You are currently unable to place orders. Contact a member of staff")

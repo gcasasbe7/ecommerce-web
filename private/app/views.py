@@ -11,9 +11,10 @@ from django.utils.encoding import (smart_bytes, smart_str)
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .managers.email_manager import EmailManager
 from .managers.highlight_manager import HighlightManager
@@ -99,7 +100,7 @@ class ShopCategoryDetail(APIView):
         return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, "Category not found. Please try again later.")
 
 # Registration view
-class RegisterView(generics.GenericAPIView):
+class RegisterView(APIView):
 
     def post(self, request):
         user = request.data
@@ -134,7 +135,7 @@ class RegisterView(generics.GenericAPIView):
         })
 
 # Email verification view
-class VerifyEmail(generics.GenericAPIView): 
+class VerifyEmail(APIView): 
     def get(self, request):
         token = request.GET.get('token')
 
@@ -159,7 +160,7 @@ class VerifyEmail(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 'There has been an error with your verification link. Please try again or contact a member of staff.')
 
 # Login view
-class LoginView(generics.GenericAPIView):
+class LoginView(APIView):
     serializer = LoginSerializer
 
     def post(self, request):
@@ -189,7 +190,7 @@ def search(request):
         return ResponseManager.build_successful_response({})
 
 # Request a new reset password token
-class RequestResetPassword(generics.GenericAPIView):
+class RequestResetPassword(APIView):
     serializer = ResetPasswordSerializer
 
     def post(self, request):
@@ -225,7 +226,7 @@ class RequestResetPassword(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_406_NOT_ACCEPTABLE, "We couldn't find your email, please make sure you are introducing the correct address")
 
 # Check the validity of the password reset attempt
-class ResetPasswordCheckTokenView(generics.GenericAPIView):
+class ResetPasswordCheckTokenView(APIView):
 
     def get(self, request, uidb64, token):
         try:
@@ -244,7 +245,7 @@ class ResetPasswordCheckTokenView(generics.GenericAPIView):
             return ResponseManager.build_invalid_response(status.HTTP_404_NOT_FOUND, 'The reset password link is not valid for your user. Please try again or contact a member of staff')
 
 # Set new password View
-class SetNewPasswordView(generics.GenericAPIView):
+class SetNewPasswordView(APIView):
     serializer = SetNewPasswordSerializer
 
     def patch(self, request):
@@ -256,7 +257,10 @@ class SetNewPasswordView(generics.GenericAPIView):
         })
 
 # Creates a Stripe Payment Intent if the basket content and the user are valid
-class CreatePaymentIntentView(generics.GenericAPIView):
+class CreatePaymentIntentView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+    
     def post(self, request):
 
         data = request.data
@@ -359,10 +363,15 @@ def checkout_stripe_webhook(request):
 
     return HttpResponse(status=200)
 
-class TestView(generics.GenericAPIView):
+
+
+class TestView(APIView):
+
+    permission_classes = (IsAuthenticated,)
     
     def get(self, request):
-        ok = stripe.Price.list()
+        
+        # ok = stripe.Price.list()
         # product = Product.objects.get(id=4)
         # stripe_product = stripe.Product.create(
         #     api_key=settings.STRIPE_API_KEY,
@@ -382,5 +391,5 @@ class TestView(generics.GenericAPIView):
         # # stripe_product = stripe.Product.retrieve('1')
 
         return ResponseManager.build_successful_response({
-            'stripe_product_price': ok,
+            'result': request.META['STRIPE_SECRET_KEY'],
         })

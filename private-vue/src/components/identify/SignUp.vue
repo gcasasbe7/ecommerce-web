@@ -5,11 +5,11 @@
         <p v-for="error in this.errors" :key="error">{{error}}</p>
     </div>
     <form @submit.prevent="submit_signup_form()">
-        <IdentifyField @set_valid="set_valid_name" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors" />
-        <IdentifyField @set_valid="set_valid_surname" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors" />
-        <IdentifyField @set_valid="set_valid_email" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors" />
-        <IdentifyField @set_valid="set_valid_password" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors" />
-        <IdentifyField @set_valid="set_valid_repeat_password" :type="this.repeat_password_field.type" :validators="this.repeat_password_field.validators" :placeholder="this.repeat_password_field.placeholder" :display_errors="this.display_errors" :password1="this.password_field.value" />
+        <InputField @set_valid="set_valid_name" :label="this.name_field.label" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors" />
+        <InputField @set_valid="set_valid_surname" :label="this.surname_field.label" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors" />
+        <InputField @set_valid="set_valid_email" :label="this.email_field.label" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors" />
+        <InputField @set_valid="set_valid_password" :label="this.password_field.label" :type="this.password_field.type" :validators="this.password_field.validators" :placeholder="this.password_field.placeholder" :display_errors="this.display_errors" />
+        <InputField @set_valid="set_valid_repeat_password" :label="this.repeat_password_field.label" :type="this.repeat_password_field.type" :validators="this.repeat_password_field.validators" :placeholder="this.repeat_password_field.placeholder" :display_errors="this.display_errors" :password1="this.password_field.value" />
         <br><br><button type="submit">Register</button>
     </form>
 </div>
@@ -17,12 +17,12 @@
 
 <script>
 import config from '@/components/identify/config/signup_config.js'
-import IdentifyField from '@/components/identify/IdentifyField.vue'
+import InputField from '@/components/identify/InputField.vue'
 
 export default {
     name: 'LogIn',
     components: {
-        IdentifyField
+        InputField
     },
     props: {
         errors: Array,

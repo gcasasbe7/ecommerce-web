@@ -1,111 +1,171 @@
 <template>
 <div class="checkout-page">
-    <h1>Checkout page</h1>
-    <form id="payment-form" @submit.prevent="submit_payment_form">
-        <div id="card-element">
-            <!--Stripe.js injects the Card Element-->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 justify-content-md-center" style="padding: 50px 130px 50px 130px">
+                <div class="mb-5">
+                    Your basket: <h2>{{this.cartTotalPrice}}€</h2>
+                </div>
+                <CartItem v-for="item in this.cart.items" v-bind:key="item.product.id" v-bind:cartItem="item" v-bind:editable="false" />
+            </div>
+            <div class="col-md-6 justify-content-md-center" style="background-color: #F2F2F2; padding: 50px 100px 50px 100px">
+                <form id="payment-form" @submit.prevent="submit_payment_form">
+
+                    <!-- User Form Area -->
+                    <div class="user-area mb-5">
+                        <h3 class="mb-4">Contact Information</h3>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <InputField @set_valid="set_valid_name" :label="this.name_field.label" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors" />
+                            </div>
+                            <div class="col-sm-6">
+                                <InputField @set_valid="set_valid_surname" :label="this.surname_field.label" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors" />
+                            </div>
+                        </div>
+                        <div class="email-input mb-3">
+                            <InputField @set_valid="set_valid_email" :label="this.email_field.label" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors" />
+                        </div>
+
+                        <div class="phone-input">
+                            <InputField @set_valid="set_valid_phone" :label="this.phone_field.label" :type="this.phone_field.type" :validators="this.phone_field.validators" :placeholder="this.phone_field.placeholder" :display_errors="this.display_errors" />
+                            <small class="fl">We'll contact you during the shipping process if required</small>
+                        </div>
+                    </div>
+
+                    <!-- Billing and Shipping address -->
+                    <h3 class="mb-4" style="margin-top:60px">Shipping Information</h3>
+                    <div class="shipping-area mb-3">
+                        <div class="address-input mb-3">
+                            <InputField @set_valid="set_valid_address" :label="this.address_field.label" :type="this.address_field.type" :validators="this.address_field.validators" :placeholder="this.address_field.placeholder" :display_errors="this.display_errors" />
+                        </div>
+
+                        <div class="place">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <InputField @set_valid="set_valid_city" :label="this.city_field.label" :type="this.city_field.type" :validators="this.city_field.validators" :placeholder="this.city_field.placeholder" :display_errors="this.display_errors" />
+                                </div>
+                                <div class="col-sm-4">
+                                    <InputField @set_valid="set_valid_zipcode" :label="this.zipcode_field.label" :type="this.zipcode_field.type" :validators="this.zipcode_field.validators" :placeholder="this.zipcode_field.placeholder" :display_errors="this.display_errors" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form Area -->
+                    <h3 class="mb-4">Payment Information</h3>
+                    <div class="payment-area">
+                        <label for="card-element" class="fl">Debit/Credit Card</label><br>
+                        <div id="card-element"></div>
+                        <button id="submit">
+                            <div class="spinner hidden" id="spinner"></div>
+                            <span id="button-text">Pay now <i class="fa fa-lock" aria-hidden="true"></i></span>
+                        </button>
+                        <p id="card-error" role="alert"></p>
+                        <p class="result-message hidden">
+                            Payment succeeded, see the result in your
+                            <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
+                        </p>
+                    </div>
+                </form>
+            </div>
         </div>
-        <button id="submit">
-            <div class="spinner hidden" id="spinner"></div>
-            <span id="button-text">Pay now</span>
-        </button>
-        <p id="card-error" role="alert"></p>
-        <p class="result-message hidden">
-            Payment succeeded, see the result in your
-            <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
-        </p>
-    </form>
+    </div>
 </div>
 </template>
 
 <script>
 import ApiHelper from '@/helpers/api_helper.js'
+import CartItem from '@/components/cart/CartItem.vue'
+import config from '@/components/identify/config/checkout_config.js'
+import InputField from '@/components/identify/InputField.vue'
 
 export default {
     name: 'Checkout',
+    components: {
+        InputField
+    },
     data() {
         return {
             cart: {
                 items: []
             },
-            stripe: {},
-            card: '',
-            first_name: '',
-            last_name: '',
-            email: '',
-            phone: '',
-            address: '',
-            zipcode: '',
-            place: '',
+            valid_card_field: false,
+            name_field: config.name_field,
+            surname_field: config.surname_field,
+            email_field: config.email_field,
+            phone_field: config.phone_field,
+            address_field: config.address_field,
+            city_field: config.city_field,
+            zipcode_field: config.zipcode_field,
+            display_errors: false,
             errors: [],
             client_secret: '',
             card: {}
         }
     },
+    components: {
+        CartItem,
+    },
     mounted() {
+        // Fetch the data from the Vuex store
         this.cart = this.$store.state.cart
+        this.email_field.value = this.$store.state.user.email
+        this.name_field.value = this.$store.state.user.name
+        this.surname_field.value = this.$store.state.user.surname
+        this.email_field.value = "test"
+        // Set the title
         document.title = "Checkout | iPadel"
-        var elements = stripe.elements();
-        var style = {
-            base: {
-                color: "#32325d",
-                fontFamily: 'Roboto, sans-serif',
-                fontSmoothing: "antialiased",
-                fontSize: "16px",
-                "::placeholder": {
-                    color: "#32325d"
-                }
-            },
-            invalid: {
-                fontFamily: 'Roboto, sans-serif',
-                color: "#fa755a",
-                iconColor: "#fa755a"
-            }
-        };
-        this.card = elements.create("card", {
-            style: style
-        });
-        // Stripe injects an iframe into the DOM
-        this.card.mount("#card-element");
-        this.card.on("change", function (event) {
-            // Disable the Pay button if there are no card details in the Element
-            document.querySelector("button").disabled = event.empty;
-            document.querySelector("#card-error").textContent = event.error ? event.error.message : "";
-        });
+        // Build the card element
+        this.init_card()
     },
     methods: {
-        getItemTotal(item) {
-            return (item.quantity * item.product.price).toFixed(2)
-        },
         submit_payment_form() {
-            // Todo validate form
-            this.checkout()
+            this.display_errors = false
+            if (this.is_valid_form()) {
+                this.checkout()
+            } else {
+                this.display_errors = true
+            }
+        },
+        is_valid_form() {
+            return this.name_field.is_valid &&
+                this.surname_field.is_valid &&
+                this.email_field.is_valid &&
+                this.phone_field.is_valid &&
+                this.address_field.is_valid &&
+                this.city_field.is_valid &&
+                this.zipcode_field.is_valid &&
+                this.valid_card_field
         },
         checkout() {
-            // Build the request data
-            let data = {
-                "user_data": {
-                    "token": this.$store.state.user.tokens.access,
-                },
-                "basket": {
-                    "basket_creation_date": this.$store.state.cart.creation_date,
-                    "basket_content": this.$store.getters.get_formatted_cart
+            if (this.client_secret) {
+                this.confirm_payment()
+            } else {
+                // Build the request data
+                let data = {
+                    "user_data": {
+                        "token": this.$store.state.user.tokens.access_token,
+                    },
+                    "basket": {
+                        "basket_creation_date": this.$store.state.cart.creation_date,
+                        "basket_content": this.$store.getters.get_formatted_cart
+                    }
                 }
-            }
 
-            // Declare the callbacks
-            const callback = {
-                success: (response) => {
-                    this.client_secret = response.data.client_secret
-                    this.confirm_payment()
-                },
-                error: (error) => {
-                    console.log(error)
+                // Declare the callbacks
+                const callback = {
+                    success: (response) => {
+                        this.client_secret = response.data.client_secret
+                        this.confirm_payment()
+                    },
+                    error: (error) => {
+                        console.log(error)
+                    }
                 }
-            }
 
-            // Fetch the current category detail from the Api
-            ApiHelper.checkout(callback, data)
+                // Fetch the current category detail from the Api
+                ApiHelper.checkout(callback, data)
+            }
         },
         confirm_payment() {
             var ref = this
@@ -131,7 +191,75 @@ export default {
             setTimeout(function () {
                 errorMsg.textContent = "";
             }, 5000);
-        }
+        },
+        init_card() {
+            // Initialize Stripe elements
+            var elements = stripe.elements();
+            // Declare the card element styling
+            var style = {
+                base: {
+                    // color: "#32325d",
+                    fontFamily: 'Avenir, Helvetica, Arial, sans-serif',
+                    fontSmoothing: "antialiased",
+                    fontSize: "16px",
+                    // "::placeholder": {
+                    //     color: "#32325d"
+                    // }
+                },
+                invalid: {
+                    fontFamily: 'Avenir, Helvetica, Arial, sans-serif',
+                    color: "#fa755a",
+                    iconColor: "#fa755a"
+                }
+            };
+            // Bind the style to the card stripe element
+            this.card = elements.create("card", {
+                hidePostalCode: true,
+                style: style
+            });
+            // Stripe injects an iframe into the DOM
+            this.card.mount("#card-element");
+            document.querySelector("#submit").disabled = true
+            var reference = this
+            var set_card_complete = function (ref, value) {
+                ref.valid_card_field = value
+            }
+            this.card.on("change", function (event) {
+                // Disable the Pay button if there are no card details in the Element
+                set_card_complete(reference, event.complete)
+                document.querySelector("#submit").disabled = !event.complete
+                document.querySelector("#card-error").textContent = event.error ? event.error.message : ""
+            });
+        },
+        set_valid_name(is_valid, value) {
+            this.name_field.is_valid = is_valid
+            this.name_field.value = value
+        },
+        set_valid_surname(is_valid, value) {
+            this.surname_field.is_valid = is_valid
+            this.surname_field.value = value
+        },
+        set_valid_email(is_valid, value) {
+            this.email_field.is_valid = is_valid
+            this.email_field.value = value
+        },
+        set_valid_phone(is_valid, value) {
+            this.phone_field.is_valid = is_valid
+            this.phone_field.value = value
+        },
+        set_valid_address(is_valid, value) {
+            this.address_field.is_valid = is_valid
+            this.address_field.value = value
+        },
+        set_valid_city(is_valid, value) {
+            this.city_field.is_valid = is_valid
+            this.city_field.value = value
+        },
+        set_valid_zipcode(is_valid, value) {
+            this.zipcode_field.is_valid = is_valid
+            this.zipcode_field.value = value
+        },
+        getItemTotal(item) {return (item.quantity * item.product.price).toFixed(2)},
     },
     computed: {
         cartSize() {
@@ -143,7 +271,6 @@ export default {
             const val = this.cart.items.reduce((acc, val) => {
                 return acc += val.quantity * val.product.price
             }, 0)
-
             return val.toFixed(2)
         }
     }
@@ -151,42 +278,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    height: 100vh;
-    width: 100vw;
-}
-
-form {
-    width: 30vw;
-    min-width: 500px;
-    align-self: center;
-    box-shadow: 0px 0px 0px 0.5px rgba(50, 50, 93, 0.1),
-        0px 2px 5px 0px rgba(50, 50, 93, 0.1), 0px 1px 1.5px 0px rgba(0, 0, 0, 0.07);
-    border-radius: 7px;
-    padding: 40px;
-}
-
-input {
-    border-radius: 6px;
-    margin-bottom: 6px;
-    padding: 12px;
-    border: 1px solid rgba(50, 50, 93, 0.1);
-    height: 44px;
-    font-size: 16px;
-    width: 100%;
-    background: white;
-}
-
 .result-message {
     line-height: 22px;
     font-size: 16px;
@@ -247,88 +338,5 @@ button:hover {
 button:disabled {
     opacity: 0.5;
     cursor: default;
-}
-
-/* spinner/processing state, errors */
-.spinner,
-.spinner:before,
-.spinner:after {
-    border-radius: 50%;
-}
-
-.spinner {
-    color: #ffffff;
-    font-size: 22px;
-    text-indent: -99999px;
-    margin: 0px auto;
-    position: relative;
-    width: 20px;
-    height: 20px;
-    box-shadow: inset 0 0 0 2px;
-    -webkit-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    transform: translateZ(0);
-}
-
-.spinner:before,
-.spinner:after {
-    position: absolute;
-    content: "";
-}
-
-.spinner:before {
-    width: 10.4px;
-    height: 20.4px;
-    background: #5469d4;
-    border-radius: 20.4px 0 0 20.4px;
-    top: -0.2px;
-    left: -0.2px;
-    -webkit-transform-origin: 10.4px 10.2px;
-    transform-origin: 10.4px 10.2px;
-    -webkit-animation: loading 2s infinite ease 1.5s;
-    animation: loading 2s infinite ease 1.5s;
-}
-
-.spinner:after {
-    width: 10.4px;
-    height: 10.2px;
-    background: #5469d4;
-    border-radius: 0 10.2px 10.2px 0;
-    top: -0.1px;
-    left: 10.2px;
-    -webkit-transform-origin: 0px 10.2px;
-    transform-origin: 0px 10.2px;
-    -webkit-animation: loading 2s infinite ease;
-    animation: loading 2s infinite ease;
-}
-
-@-webkit-keyframes loading {
-    0% {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-    }
-
-    100% {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes loading {
-    0% {
-        -webkit-transform: rotate(0deg);
-        transform: rotate(0deg);
-    }
-
-    100% {
-        -webkit-transform: rotate(360deg);
-        transform: rotate(360deg);
-    }
-}
-
-@media only screen and (max-width: 600px) {
-    form {
-        width: 80vw;
-    }
 }
 </style>

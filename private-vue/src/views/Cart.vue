@@ -1,20 +1,18 @@
 <template>
-    <div class="cart-page">
+<div class="cart-page">
+    <div v-if="this.cartSize > 0">
+        <h1>Your cart ({{cartSize}} items)</h1>
+        <h2>Total: {{cartTotalPrice}}€</h2>
+        <button class="mb-5" @click="clearCart">Clear cart</button>
 
-    <h1>Your cart ({{cartSize}} items)</h1>
-    <h2>Total: {{cartTotalPrice}}€</h2>
-    <button @click="clearCart">Clear cart</button>
+        <CartItem v-on:itemModified="updateTitle" v-for="item in this.cart.items" v-bind:key="item.product.id" v-bind:cartItem="item" v-bind:editable="true" />
 
-    <CartItem 
-        v-on:itemModified="updateTitle"
-        v-for="item in this.cart.items" 
-        v-bind:key="item.product.id"
-        v-bind:cartItem="item"
-        />
-
-    <router-link to="/cart/checkout"><button>Proceed to checkout</button></router-link>
-    
+        <router-link to="/cart/checkout"><button>Proceed to checkout</button></router-link>
     </div>
+    <div v-else>
+        <h1>Cart empty view</h1>
+    </div>
+</div>
 </template>
 
 <script>
@@ -51,7 +49,7 @@ export default {
             }, 0)
         },
         cartTotalPrice() {
-            const val =  this.cart.items.reduce((acc, val) => {
+            const val = this.cart.items.reduce((acc, val) => {
                 return acc += val.quantity * val.product.price
             }, 0)
 
