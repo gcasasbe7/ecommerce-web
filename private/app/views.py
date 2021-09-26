@@ -262,24 +262,22 @@ class CreatePaymentIntentView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def post(self, request):
-
+        # Fetch the request data
         data = request.data
         
         try:
             # Fetch the values from the request
-            basket      = data['basket']
-            user_data   = data['user_data']
+            basket = data['basket']
 
             # Valid request data?
-            if not basket or not user_data:
-                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 
-                'Invalid request')
+            if not basket:
+                return ResponseManager.build_invalid_response(status.HTTP_400_BAD_REQUEST, 'Invalid request')
         
             # Declare the check order thread
-            order_thread = CheckOrderThread(basket=basket, user_data=user_data)
+            order_thread = CheckOrderThread(basket=basket, user=request.user)
             # Perform a sanity check to the order in a background thread
             order_thread.start()
-            # Obtain the data from the thread safely
+            # Safely wait and obtain the data from the thread when it's done
             order = order_thread.join()
             
             # Prepare the response

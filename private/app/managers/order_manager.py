@@ -19,36 +19,27 @@ class OrderManager:
     }
     '''
     @staticmethod
-    def check_order(basket, user_data):
+    def check_order(basket, user):
         # Initialize response structure
         order = {
             'valid': '',
             'total_amount': '',
-            'user': {},
-            'basket': {},
-            'line_items': [],
             'errors': []
         }
 
         # Check if the user is eligible to place an order
-        user_validation = OrderManager.check_user(user_data['token'])
+        user_validation = OrderManager.check_user(user)
         # Check if the basket is valid
         basket_validation = OrderManager.check_basket(basket)
         # Global validation
-        #order['valid'] = user_validation['valid'] and basket_validation['valid']
-        order['valid'] = basket_validation['valid']
+        order['valid'] = user_validation['valid'] and basket_validation['valid']
         # Is the user and order data valid to proceed?
         if order['valid']:
             # Buffer the total price of the order
             order['total_amount'] = basket_validation['total_amount']
-            # Buffer the user instance
-            order['user'] = user_validation['user']
-            # Buffer the basket content
-            # order['basket'] = basket
         else:
             # Buffer the relevant errors
-            #order['errors'] = user_validation['errors'] + basket_validation['errors']
-            order['errors'] = basket_validation['errors']
+            order['errors'] = user_validation['errors'] + basket_validation['errors']
 
         return order
         
@@ -60,7 +51,7 @@ class OrderManager:
         'errors': []
     } 
     '''
-    def check_user(token):
+    def check_user(user):
         # Define the response structure
         response = {
             'valid': '',
@@ -68,18 +59,24 @@ class OrderManager:
         }
 
         try:
-            # Attempts to decode the user token
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=["HS256"])
-            user = User.objects.get(id=payload['user_id'])
-
             # Does the user exist?
             if user:
-                if user.is_active:
-                    response['valid'] = True
-                else:
+
+                # Is the user verified?
+                if not user.is_verified:
+                    response['valid'] = False
+                    response['errors'].append("Your account is not verified. Please verify your account before placing orders")
+
+                # Is the user eligible to place orders?
+                elif not user.is_active:
                     response['valid'] = False
                     response['errors'].append("You are currently unable to place orders. Contact a member of staff")
+
+                # Valid user
+                else:
+                    response['valid'] = True
+
+            # Invalid user
             else:
                 response['valid'] = False
                 response['errors'].append("We couldn't verify the user. Please try again later or contact a member of staff")
@@ -167,27 +164,3 @@ class OrderManager:
     @staticmethod
     def eur_to_cent(value):
         return int(value * 100)
-
-    '''
-    Builds a formatted basket understandable for Stripe to build the dynamic Checkout page
-    Assertions: Basket content is entirely valid
-    '''
-    @staticmethod
-    def build_line_items(basket):
-        f_basket = []
-        for item in basket['basket_content']:
-            product = Product.objects.get(id=item['product_id'])
-            f_basket.append({
-                'price': stripe.Price.retrieve(product.stripe_price_id),
-                # 'price_data': {
-                #     'currency': settings.APP_CURRENCY,
-                #     'product_data': {
-                #         'name': product.name,
-                #         'description': product.truncated_description,
-                #         'images': [product.image_absolute_url]
-                #     },
-                #     'unit_amount': OrderManager.eur_to_cent(product.price),
-                # },
-                'quantity': item['quantity'],
-            })
-        return f_basket

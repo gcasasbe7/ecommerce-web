@@ -1,19 +1,21 @@
 <template>
 <div class="category-page">
-    <div class="row">
-        <div class="column">
-            <h2>Product Categories</h2>
+    <div class="container">
+        <div class="row">
+            <div class="column">
+                <h2>Product Categories</h2>
 
-            <div v-for="category in all_categories" :key="category">
-                <router-link v-bind:to="category.absolute_url">{{category.name}}</router-link>
+                <div v-for="category in all_categories" :key="category">
+                    <router-link v-bind:to="category.absolute_url">{{category.name}}</router-link>
+                </div>
             </div>
-        </div>
-        <div class="column">
-            <CategoryViewer :category="this.selected_category" />
+            <div class="column">
+                <CategoryViewer :category="this.selected_category" />
+            </div>
         </div>
     </div>
 </div>
-</template>
+</template> 
 
 <script>
 import ApiHelper from '@/helpers/api_helper'
@@ -50,7 +52,7 @@ export default {
 
             // Declare the callbacks
             const callback = {
-                success: (response) => {                    
+                success: (response) => {
                     // Do we have products to display in the current category?
                     if (response.data.category_detail.products.length > 0) {
                         this.selected_category = response.data.category_detail
@@ -61,7 +63,9 @@ export default {
                         this.$router.push('/shop')
                     }
                 },
-                error: (error) => {this.$router.push('/shop')}
+                error: (error) => {
+                    this.$router.push('/shop')
+                }
             }
 
             // Fetch the current category detail from the Api

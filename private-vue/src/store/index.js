@@ -87,15 +87,18 @@ export default createStore({
 
     onLogoutUser(state) {
       helpers.onLogoutUser(state)
+    },
+
+    setUserAccessToken(state, access_token) {
+      state.user.tokens.access_token = access_token
+      storageHelper.storeUser(state.user)
     }
   },
 
   /* Actions: Syncrhonized functions to modify the state data */
-  actions: {
-  },
-
-  modules: {
-  },
+  actions: {},
+  modules: {},
+  
   /* Define store getters */
   getters: {
     get_formatted_cart: state => {
@@ -130,8 +133,7 @@ const helpers = {
     state.user.email = data.email
     state.user.tokens.access_token = data.tokens.access_token
     state.user.tokens.refresh_token = data.tokens.refresh_token
-    // Store the access token into the current browser cookie
-    storageHelper.setCookie(storageHelper.ACCESS_TOKEN_KEY, data.tokens.access_token)
+    // storageHelper.setCookie(storageHelper.ACCESS_TOKEN_KEY, data.tokens.access_token)
     // Store the user into the local Storage (Along with his refresh token)
     storageHelper.storeUser(state.user)
   },

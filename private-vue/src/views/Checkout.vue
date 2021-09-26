@@ -143,9 +143,6 @@ export default {
             } else {
                 // Build the request data
                 let data = {
-                    "user_data": {
-                        "token": this.$store.state.user.tokens.access_token,
-                    },
                     "basket": {
                         "basket_creation_date": this.$store.state.cart.creation_date,
                         "basket_content": this.$store.getters.get_formatted_cart
@@ -154,12 +151,24 @@ export default {
 
                 // Declare the callbacks
                 const callback = {
+                    /* Successful checkout */
                     success: (response) => {
                         this.client_secret = response.data.client_secret
                         this.confirm_payment()
                     },
+                    /* Unsuccessful checkout */
                     error: (error) => {
                         console.log(error)
+                    },
+                    /* Unrecognised user */
+                    unauth: () => {
+                        // Attempt to refresh the user access token
+                        ApiHelper.refreshToken({
+                            do: () => { 
+                                console.log("Re attempting checkout after acces token expiry")
+                                this.checkout() 
+                            }
+                        })
                     }
                 }
 
