@@ -59,7 +59,7 @@ export default {
     async login(callback, login_data) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/login/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiPostCall(url, callback, login_data)
     },
 
@@ -75,7 +75,7 @@ export default {
     async register(callback, signup_data) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/register/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiPostCall(url, callback, signup_data)
     },
 
@@ -91,7 +91,7 @@ export default {
     async getCategoryDetail(callback, categorySlug) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
 
@@ -106,7 +106,7 @@ export default {
     async getCategories(callback) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/categories/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
 
@@ -123,7 +123,7 @@ export default {
     async getProductDetail(callback, categorySlug, productSlug) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/shop/${categorySlug}/${productSlug}/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
 
@@ -140,7 +140,7 @@ export default {
     async checkResetPasswordToken(callback, uidb64, token) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/check-reset-password/${uidb64}/${token}/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiGetCall(url, callback)
     },
 
@@ -156,7 +156,7 @@ export default {
     async performSearch(callback, query) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/products/search/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiPostCall(url, callback, query)
     },
 
@@ -172,7 +172,7 @@ export default {
     async setNewPassword(callback, data) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/complete-reset-password/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiPatchCall(url, callback, data)
     },
 
@@ -189,7 +189,7 @@ export default {
     async checkout(callback, data) {
         // Declare the url
         const url = `${ApiData.BASE_API_URL}/checkout/`
-            // Launch the Api call providing callback actions
+        // Launch the Api call providing callback actions
         this.performApiPostCall(url, callback, data)
     },
 
@@ -224,6 +224,18 @@ export default {
             })
     },
 
+    /**
+     * Api Endpoint:    Verify Email
+     * Method:          GET
+     * Api Url:         /api/v1/verify-email/?token={value}
+     * @param {Object} callback ~> Success and error scenarios
+     */
+     async verifyEmail(callback, token) {
+        // Declare the url
+        const url = `${ApiData.BASE_API_URL}/verify-email/?token=${token}`
+        // Launch the Api call providing callback actions
+        this.performApiGetCall(url, callback)
+    },
 
 
 

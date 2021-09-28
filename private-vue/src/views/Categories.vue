@@ -27,7 +27,7 @@ export default {
         this.getCategories()
     },
     methods: {
-        async getCategories() {
+        getCategories() {
             // Declare the callbacks
             const callback = {
                 success: (response) => {

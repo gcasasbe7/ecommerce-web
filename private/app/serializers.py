@@ -4,7 +4,7 @@ from .models import *
 from django.contrib import auth
 from rest_framework.exceptions import AuthenticationFailed 
 from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -58,8 +58,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(
-        max_length=68, min_length=8, write_only=True)
+    password = serializers.CharField(max_length=68, min_length=8, write_only=True)
 
     class Meta:
         model = User

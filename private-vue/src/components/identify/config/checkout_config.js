@@ -39,7 +39,7 @@ export default {
         validators: validators.checkout_validators.address_validators,
         placeholder: 'Full address',
         is_valid: false,
-        label: 'Address'
+        label: 'Full address'
     },
     city_field: {
         value: '',

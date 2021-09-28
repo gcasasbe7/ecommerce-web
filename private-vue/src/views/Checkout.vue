@@ -16,14 +16,14 @@
                         <h3 class="mb-4">Contact Information</h3>
                         <div class="row">
                             <div class="col-sm-6">
-                                <InputField @set_valid="set_valid_name" :label="this.name_field.label" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors" />
+                                <InputField @set_valid="set_valid_name" :value="this.name_field.value" :label="this.name_field.label" :type="this.name_field.type" :validators="this.name_field.validators" :placeholder="this.name_field.placeholder" :display_errors="this.display_errors" />
                             </div>
                             <div class="col-sm-6">
-                                <InputField @set_valid="set_valid_surname" :label="this.surname_field.label" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors" />
+                                <InputField @set_valid="set_valid_surname" :value="this.surname_field.value" :label="this.surname_field.label" :type="this.surname_field.type" :validators="this.surname_field.validators" :placeholder="this.surname_field.placeholder" :display_errors="this.display_errors" />
                             </div>
                         </div>
                         <div class="email-input mb-3">
-                            <InputField @set_valid="set_valid_email" :label="this.email_field.label" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors" />
+                            <InputField @set_valid="set_valid_email" :value="this.email_field.value" :label="this.email_field.label" :type="this.email_field.type" :validators="this.email_field.validators" :placeholder="this.email_field.placeholder" :display_errors="this.display_errors" />
                         </div>
 
                         <div class="phone-input">
@@ -106,13 +106,14 @@ export default {
     components: {
         CartItem,
     },
-    mounted() {
+    beforeMount() {
         // Fetch the data from the Vuex store
         this.cart = this.$store.state.cart
         this.email_field.value = this.$store.state.user.email
         this.name_field.value = this.$store.state.user.name
         this.surname_field.value = this.$store.state.user.surname
-        this.email_field.value = "test"
+    },
+    mounted() {
         // Set the title
         document.title = "Checkout | iPadel"
         // Build the card element

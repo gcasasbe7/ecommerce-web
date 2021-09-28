@@ -9,6 +9,7 @@ import Checkout from '@/views/Checkout.vue'
 import Identify from '@/views/Identify.vue'
 import Me from '@/views/Me.vue'
 import ResetPasswordView from '@/views/ResetPasswordView.vue'
+import VerifyEmail from '@/views/VerifyEmail.vue'
 import store from '../store'
 
 const routes = [
@@ -84,6 +85,11 @@ const routes = [
     path: '/account/reset-password/:uidb64/:token',
     name: 'ResetPasswordView',
     component: ResetPasswordView
+  },
+  {
+    path: '/account/verify-email/',
+    name: 'VerifyEmail',
+    component: VerifyEmail
   },
 
 ]

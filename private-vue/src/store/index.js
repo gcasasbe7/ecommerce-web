@@ -36,8 +36,10 @@ export default createStore({
 
       // Attempt to initialize the user
       if(storageHelper.getUser()) {
-        helpers.onLoginUser(state, storageHelper.getUser())
-        //state.onLoginUser(storageHelper.getUser())
+        // Init the user
+        state.user = storageHelper.getUser()
+        // Assert it's logged in
+        helpers.onLoginUser(state, state.user)
       }
     },
 

@@ -2,6 +2,8 @@ from ..models import Product
 
 class HighlightManager:
 
+#todo create constructor and init shouldDisplayHighlight to only query the products once
+
     name = 'Destacados'
     slug = 'destacados'
     absolute_url = f'/shop/{slug}'
