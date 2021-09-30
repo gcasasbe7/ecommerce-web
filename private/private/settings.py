@@ -142,7 +142,8 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR + 'media/'
 
-EMAIL_HOST = 'smtp.mailtrap.io'
-EMAIL_PORT = '2525'
-EMAIL_HOST_USER = 'd4f7de4878bf25'
-EMAIL_HOST_PASSWORD = '7b555f4bd2514f'
+# Mailing configuration
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

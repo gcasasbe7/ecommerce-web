@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework import serializers
 from .models import *
@@ -18,16 +19,23 @@ class BrandSerializer(serializers.ModelSerializer):
         model = Brand
         fields = ('name', 'logo_url')
 
-
 class CategoryShopListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'absolute_url', 'image_url')
 
+class RacketDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RacketDetail
+        fields = ('game_type', 'core', 'level', 'frame', 'shape', 
+        'age', 'color', 'face', 'balance', 'production_year')
+
+    
 
 class ProductSerializer(serializers.ModelSerializer):
     brand = BrandSerializer()
     images = ProductImageSerializer(many=True)
+    racket_detail = RacketDetailSerializer()
 
     class Meta:
         model = Product
@@ -40,9 +48,13 @@ class ProductSerializer(serializers.ModelSerializer):
             'absolute_url',
             'image_absolute_url',
             'images',
-            'is_available'
+            'is_available',
+            'racket_detail',
         )
 
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
 
 class CategorySerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True)

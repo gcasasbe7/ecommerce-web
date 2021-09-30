@@ -34,7 +34,7 @@ export default {
                     this.categories = response.data.categories
 
                     if (response.data.highlight) {
-                        this.categories.push(response.data.highlight)
+                        this.categories.splice(0,0,response.data.highlight)
                     }
                 },
                 error: (error) => {

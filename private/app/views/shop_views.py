@@ -87,7 +87,7 @@ class ShopCategoryDetail(APIView):
 
             # Do we have any highlighted products to display?
             if HighlightManager.shouldDisplayHighlights():
-                categories_data.append(HighlightManager.getHighlightCategory())
+                categories_data.insert(0, HighlightManager.getHighlightCategory())
 
             if serializer.is_valid:
                 return ResponseManager.build_successful_response({

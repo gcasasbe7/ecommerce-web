@@ -1,7 +1,4 @@
-import stripe
-from ..models import Product, User
-import jwt
-from django.conf import settings
+from ..models import Product
 
 class OrderManager:
 

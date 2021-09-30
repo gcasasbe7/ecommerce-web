@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from rest_framework_simplejwt.tokens import RefreshToken
-import requests
-from django.conf import settings
 
 class UserManager(BaseUserManager):
 
@@ -131,7 +129,6 @@ class ProductImage(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE, null=False, blank=False)
-    stripe_checkout_session_id = models.CharField(max_length=255, null=False, blank=False)
     stripe_payment_intent_id = models.CharField(max_length=255, null=False, blank=False)
     basket = models.JSONField()
     creation_date = models.DateField(auto_now_add=True)
@@ -139,6 +136,7 @@ class Order(models.Model):
     def __str__(self):
         return f'[{self.status}] Order by {self.user.name} ({self.total_amount}€ in {self.basket_size} products)'
 
+    '''
     @property
     def status(self):
         headers = {'Authorization': f'Bearer {settings.STRIPE_API_KEY}'}
@@ -149,6 +147,7 @@ class Order(models.Model):
         if req.status_code == 200:
             return req.json()['payment_status'].capitalize()
         return '-'
+    '''
 
     @property
     def total_amount(self):
@@ -166,3 +165,17 @@ class Order(models.Model):
         for item in self.basket['basket_content']:
             acc += item['quantity']
         return acc
+
+class RacketDetail(models.Model):
+    product = models.OneToOneField(Product, related_name='racket_detail', on_delete=models.CASCADE, blank=True, null=True)
+    game_type = models.CharField(max_length=255)
+    core = models.CharField(max_length=255)
+    level = models.CharField(max_length=255)
+    frame = models.CharField(max_length=255)
+    shape = models.CharField(max_length=255)
+    age = models.CharField(max_length=255)
+    color = models.CharField(max_length=255)
+    face = models.CharField(max_length=255)
+    balance = models.CharField(max_length=255)
+    production_year = models.CharField(max_length=255)
+

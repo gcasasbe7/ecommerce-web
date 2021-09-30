@@ -31,8 +31,12 @@ class UserAdmin(BaseUserAdmin):
 class ProductImageAdmin(admin.StackedInline):
     model = ProductImage
 
+class RacketDetailsAdmin(admin.TabularInline):
+    model = RacketDetail
+    max_num = 1
+
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImageAdmin]
+    inlines = [ProductImageAdmin, RacketDetailsAdmin]
 
     class Meta:
         model = Product
