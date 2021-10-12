@@ -40,7 +40,6 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id',
             'name',
             'brand',
             'description',
@@ -52,12 +51,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'racket_detail',
         )
 
+    # Override Product representation to remove null fields on the response
     def to_representation(self, instance):
         result = super().to_representation(instance)
         return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
 
 class CategorySerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True)
+    #available_products = ProductSerializer(many=True)
 
     class Meta:
         model = Category
@@ -66,6 +67,7 @@ class CategorySerializer(serializers.ModelSerializer):
             'absolute_url',
             'image_url',
             'products',
+            'available_products'
         )
 
 

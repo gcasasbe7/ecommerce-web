@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from rest_framework_simplejwt.tokens import RefreshToken
+from collections import OrderedDict
 
 class UserManager(BaseUserManager):
 
@@ -84,6 +85,13 @@ class Category(models.Model):
     def image_url(self):
         return f'http://127.0.0.1:8000/media/{self.image}/'
 
+    def available_products(self):
+        all_products = list(self.products.values())
+        re = [product for product in all_products if product['show'] and product['stock'] > 0]
+        #import pdb
+        #pdb.set_trace()
+        return re        
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
     brand = models.ForeignKey(Brand, related_name='products', on_delete=models.CASCADE)
@@ -104,7 +112,7 @@ class Product(models.Model):
         return self.name + ( ' (*)' if self.highlight else '')
 
     def is_available(self):
-        return self.stock > 0
+        return self.stock > 0 and self.show
 
     def absolute_url(self):
         return f'/shop/{self.category.slug}/{self.slug}/'

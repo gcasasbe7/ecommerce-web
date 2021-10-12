@@ -25,7 +25,7 @@ class HighlightManager:
             'name' : HighlightManager.name,
             'absolute_url' : HighlightManager.absolute_url,
             'image_url' : HighlightManager.image_url,
-            'products' : Product.objects.filter(highlight=True)
+            'products' : Product.objects.filter(highlight=True) #TODO: ENSURE HIGHLGHTED PRODUCTS ARE AVAILABLE (STOCK > 0 AND SHOW)
         }
 
         return highlight

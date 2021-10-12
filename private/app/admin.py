@@ -30,6 +30,7 @@ class UserAdmin(BaseUserAdmin):
 
 class ProductImageAdmin(admin.StackedInline):
     model = ProductImage
+    extra = 1
 
 class RacketDetailsAdmin(admin.TabularInline):
     model = RacketDetail

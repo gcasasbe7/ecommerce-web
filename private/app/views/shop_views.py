@@ -72,7 +72,7 @@ class ShopCategoryDetail(APIView):
             # Are we trying to fetch the detail for the Highlighted section?
             if category_slug == HighlightManager.slug:
                 return HighlightManager.getHighlightCategoryDetail()
-            return Category.objects.get(slug=category_slug)
+            return Category.objects.get(slug=category_slug)  #TODO EXCLUDE NOT AVAILABLE PRODUCTS OF THE CATEGORY
         except Category.DoesNotExist:
             return None
 
